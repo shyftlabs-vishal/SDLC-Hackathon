@@ -9,6 +9,7 @@ import type {
   GitSyncResponse,
   HealthResponse,
   JiraImportResponse,
+  JiraNudgeResponse,
   JiraPushResponse,
   JiraStatusResponse,
   JiraSyncResponse,
@@ -185,6 +186,19 @@ export const api = {
     request<JiraImportResponse>(`/api/projects/${projectId}/jira/import`, {
       method: "POST",
       body: JSON.stringify({ enrich }),
+    }),
+
+  nudgeJiraTicket: (
+    ticketId: string,
+    body: {
+      message?: string;
+      recipient_email?: string;
+      recipient_account_id?: string;
+    },
+  ) =>
+    request<JiraNudgeResponse>(`/api/tickets/${ticketId}/jira/nudge`, {
+      method: "POST",
+      body: JSON.stringify(body),
     }),
 
   applyCommitLinks: (projectId: string) =>

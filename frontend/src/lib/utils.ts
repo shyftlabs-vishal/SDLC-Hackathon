@@ -1,4 +1,49 @@
 import { clsx, type ClassValue } from "clsx";
+import type { TicketStatus } from "./types";
+
+export const TICKET_STATUSES: TicketStatus[] = [
+  "backlog",
+  "in_progress",
+  "in_review",
+  "done",
+  "blocked",
+];
+
+const STATUS_CONFIG: Record<TicketStatus, { label: string; pill: string; bar: string }> = {
+  backlog: {
+    label: "Backlog",
+    pill: "bg-[#DFE1E6] text-[#42526E] border border-[#C1C7D0]",
+    bar: "bg-[#42526E]",
+  },
+  in_progress: {
+    label: "In Progress",
+    pill: "bg-[#DEEBFF] text-[#0052CC] border border-[#B3D4FF]",
+    bar: "bg-[#0052CC]",
+  },
+  in_review: {
+    label: "In Review",
+    pill: "bg-[#EAE6FF] text-[#403294] border border-[#C0B6F2]",
+    bar: "bg-[#6554C0]",
+  },
+  done: {
+    label: "Done",
+    pill: "bg-[#E3FCEF] text-[#216E4E] border border-[#ABF5D1]",
+    bar: "bg-[#36B37E]",
+  },
+  blocked: {
+    label: "Blocked",
+    pill: "bg-[#FFEBE6] text-[#BF2600] border border-[#FFBDAD]",
+    bar: "bg-[#DE350B]",
+  },
+};
+
+export function statusLabel(status: string): string {
+  return STATUS_CONFIG[status as TicketStatus]?.label ?? status.replace(/_/g, " ");
+}
+
+export function statusBarColor(status: TicketStatus): string {
+  return STATUS_CONFIG[status].bar;
+}
 
 export function cn(...inputs: ClassValue[]) {
   return clsx(inputs);
@@ -69,18 +114,7 @@ export function priorityStyles(priority: string): string {
 }
 
 export function statusStyles(status: string): string {
-  switch (status) {
-    case "done":
-      return "bg-emerald-100 text-emerald-700";
-    case "in_progress":
-      return "bg-blue-100 text-blue-700";
-    case "in_review":
-      return "bg-violet-100 text-violet-700";
-    case "blocked":
-      return "bg-red-100 text-red-700";
-    default:
-      return "bg-slate-100 text-slate-600";
-  }
+  return STATUS_CONFIG[status as TicketStatus]?.pill ?? STATUS_CONFIG.backlog.pill;
 }
 
 export function typeStyles(type: string): string {

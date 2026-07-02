@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import os
 import re
+import uuid
 from typing import Any
 
 import httpx
@@ -443,3 +444,98 @@ async def fetch_issues_to_import(
             continue
         to_import.append(parse_imported_issue(issue, site_url))
     return to_import, skipped
+
+
+async def get_jira_user(site_url: str, account_id: str) -> dict[str, Any]:
+    async with _client(site_url) as client:
+        resp = await client.get("/user", params={"accountId": account_id})
+        if resp.status_code == 404:
+            raise ValueError("JIRA user not found")
+        if resp.status_code >= 400:
+            raise RuntimeError(f"JIRA API error ({resp.status_code}): {resp.text[:200]}")
+        return resp.json()
+
+
+async def search_jira_user(site_url: str, query: str) -> dict[str, Any]:
+    query = query.strip()
+    if not query:
+        raise ValueError("Recipient email is required")
+    async with _client(site_url) as client:
+        resp = await client.get("/user/search", params={"query": query, "maxResults": 10})
+        if resp.status_code >= 400:
+            raise RuntimeError(f"JIRA user search failed ({resp.status_code}): {resp.text[:200]}")
+        users = resp.json() or []
+        if not users:
+            raise ValueError(f"No JIRA user found for '{query}'")
+        lowered = query.lower()
+        for user in users:
+            email = str(user.get("emailAddress") or "").lower()
+            if email == lowered:
+                return user
+        return users[0]
+
+
+def comment_with_mention_adf(message: str, account_id: str, display_name: str) -> dict[str, Any]:
+    text = message.strip() or "Could you please take a look at this ticket?"
+    mention = {
+        "type": "mention",
+        "attrs": {
+            "id": account_id,
+            "text": f"@{display_name}",
+            "accessLevel": "",
+            "localId": str(uuid.uuid4()),
+        },
+    }
+    content: list[dict[str, Any]] = []
+    lines = text.splitlines() or [text]
+    for index, line in enumerate(lines):
+        line = line.strip()
+        if not line and index > 0:
+            continue
+        para: list[dict[str, Any]] = []
+        if index == 0:
+            para.append(mention)
+            para.append({"type": "text", "text": f" {line}" if line else " — heads up on this ticket."})
+        else:
+            para.append({"type": "text", "text": line})
+        content.append({"type": "paragraph", "content": para})
+    return {"type": "doc", "version": 1, "content": content}
+
+
+async def add_issue_comment(site_url: str, issue_key: str, body_adf: dict[str, Any]) -> dict[str, Any]:
+    async with _client(site_url) as client:
+        resp = await client.post(f"/issue/{issue_key}/comment", json={"body": body_adf})
+        if resp.status_code not in (200, 201):
+            raise RuntimeError(
+                f"Failed to add JIRA comment on {issue_key}: {resp.status_code} {resp.text[:300]}"
+            )
+        return resp.json()
+
+
+async def nudge_user_on_issue(
+    site_url: str,
+    issue_key: str,
+    *,
+    recipient_email: str | None = None,
+    recipient_account_id: str | None = None,
+    message: str = "",
+) -> dict[str, Any]:
+    """Post a JIRA comment that @mentions a user — JIRA emails them automatically."""
+    if recipient_account_id:
+        user = await get_jira_user(site_url, recipient_account_id)
+    elif recipient_email:
+        user = await search_jira_user(site_url, recipient_email)
+    else:
+        raise ValueError("Provide recipient_email or recipient_account_id")
+
+    account_id = str(user["accountId"])
+    display_name = str(user.get("displayName") or "there")
+    adf = comment_with_mention_adf(message, account_id, display_name)
+    comment = await add_issue_comment(site_url, issue_key, adf)
+    return {
+        "issue_key": issue_key,
+        "recipient_name": display_name,
+        "recipient_email": user.get("emailAddress"),
+        "comment_id": str(comment.get("id", "")),
+        "comment_url": f"{normalize_site_url(site_url)}/browse/{issue_key}?focusedCommentId={comment.get('id')}",
+    }

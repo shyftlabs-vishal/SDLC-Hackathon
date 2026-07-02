@@ -28,11 +28,12 @@ import {
   formatRelative,
   priorityStyles,
   severityStyles,
-  statusStyles,
   typeStyles,
 } from "@/lib/utils";
 import { GitBranchPicker } from "@/components/git-branch-picker";
 import { JiraPanel } from "@/components/jira-panel";
+import { StatusSelect } from "@/components/status-select";
+import { TicketNudge } from "@/components/ticket-nudge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -504,21 +505,20 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                         </ul>
                       )}
                     </div>
-                    <select
-                      className="rounded-lg border border-[var(--border)] bg-white px-3 py-1.5 text-sm capitalize"
+                    <StatusSelect
                       value={ticket.status}
                       disabled={actionLoading === `ticket-${ticket.id}`}
-                      onChange={(e) =>
-                        handleTicketStatus(ticket.id, e.target.value as TicketStatus)
-                      }
-                    >
-                      {["backlog", "in_progress", "in_review", "done", "blocked"].map((s) => (
-                        <option key={s} value={s}>
-                          {s.replace("_", " ")}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(status) => handleTicketStatus(ticket.id, status)}
+                    />
                   </div>
+                  <TicketNudge
+                    ticket={ticket}
+                    onError={setError}
+                    onSuccess={(msg) => {
+                      setError(null);
+                      if (projectId) dispatchProjectRefresh(projectId);
+                    }}
+                  />
                 </CardBody>
               </Card>
             ))

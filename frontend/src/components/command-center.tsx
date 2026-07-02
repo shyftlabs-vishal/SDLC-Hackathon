@@ -20,6 +20,7 @@ import type {
   StandupDigestResult,
 } from "@/lib/types";
 import { ProjectChat } from "@/components/project-chat";
+import { StatusBadge } from "@/components/status-select";
 import { alignmentBg, severityStyles } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -424,9 +425,9 @@ export function CommandCenter({
                     {Math.round(link.confidence * 100)}% match
                   </Badge>
                   {link.suggested_status && (
-                    <Badge className="bg-violet-100 text-violet-700">
-                      → {link.suggested_status.replace("_", " ")}
-                    </Badge>
+                    <span className="inline-flex items-center gap-1 text-xs text-[var(--muted)]">
+                      → <StatusBadge status={link.suggested_status} />
+                    </span>
                   )}
                 </div>
                 <p className="mt-1 font-mono text-xs text-[var(--muted)]">

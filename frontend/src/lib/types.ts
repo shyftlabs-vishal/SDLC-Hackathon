@@ -147,6 +147,14 @@ export interface JiraImportResponse {
   tickets: Ticket[];
 }
 
+export interface JiraNudgeResponse {
+  issue_key: string;
+  recipient_name: string;
+  recipient_email: string | null;
+  comment_id: string;
+  comment_url: string;
+}
+
 export interface ApplyCommitLinksResponse {
   applied: number;
   skipped: number;

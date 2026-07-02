@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { api } from "@/lib/api";
 import type { CommandCenterResponse, HealthResponse, ProjectDetail, TicketStatus } from "@/lib/types";
-import { cn } from "@/lib/utils";
+import { cn, statusBarColor, statusLabel } from "@/lib/utils";
 import { onProjectRefresh } from "@/lib/refresh-events";
 import { SidebarActivity } from "@/components/sidebar-activity";
 import { SidebarJira } from "@/components/sidebar-jira";
@@ -35,22 +35,6 @@ const STATUS_ORDER: TicketStatus[] = [
   "backlog",
   "blocked",
 ];
-
-const STATUS_LABELS: Record<TicketStatus, string> = {
-  done: "Done",
-  in_progress: "In progress",
-  in_review: "In review",
-  backlog: "Backlog",
-  blocked: "Blocked",
-};
-
-const STATUS_COLORS: Record<TicketStatus, string> = {
-  done: "bg-emerald-400",
-  in_progress: "bg-blue-400",
-  in_review: "bg-violet-400",
-  backlog: "bg-slate-500",
-  blocked: "bg-red-400",
-};
 
 function ticketBreakdown(tickets: ProjectDetail["tickets"]) {
   const counts: Record<TicketStatus, number> = {
@@ -204,9 +188,9 @@ export function SidebarProjectPanel({
                   return (
                     <div
                       key={status}
-                      className={cn(STATUS_COLORS[status], "h-full")}
+                      className={cn(statusBarColor(status), "h-full")}
                       style={{ width: `${pct}%` }}
-                      title={`${STATUS_LABELS[status]}: ${n}`}
+                      title={`${statusLabel(status)}: ${n}`}
                     />
                   );
                 })}
