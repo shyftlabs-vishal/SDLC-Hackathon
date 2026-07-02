@@ -961,7 +961,7 @@ def main() -> None:
             reconfigure(encoding="utf-8")
 
     port = int(os.getenv("SDLC_CONDUCTOR_PORT", "8096"))
-    print(f"SDLC Conductor API -> http://localhost:{port}")
+    print(f"SDLC Conductor API : http://localhost:{port}")
     print("Start frontend: cd ../frontend && npm run dev")
     uvicorn.run("server:app", host="0.0.0.0", port=port, reload=False)
 
