@@ -473,14 +473,26 @@ def update_ticket(
     status: TicketStatus | None = None,
     priority: TicketPriority | None = None,
     title: str | None = None,
+    description: str | None = None,
+    acceptance_criteria: list[str] | None = None,
+    estimated_points: int | None = None,
     assignee: str | None = None,
     jira_assignee_account_id: str | None = None,
     *,
     sync_assignee: bool = False,
+    sync_description: bool = False,
+    sync_acceptance_criteria: bool = False,
+    sync_points: bool = False,
 ) -> TicketResponse:
     updates: dict[str, Any] = {"updated_at": _now().isoformat()}
     if title is not None:
         updates["title"] = title.strip()
+    if sync_description and description is not None:
+        updates["description"] = description.strip()
+    if sync_acceptance_criteria and acceptance_criteria is not None:
+        updates["acceptance_criteria_json"] = json.dumps(acceptance_criteria)
+    if sync_points:
+        updates["estimated_points"] = estimated_points
     if status is not None:
         updates["status"] = status.value
     if priority is not None:

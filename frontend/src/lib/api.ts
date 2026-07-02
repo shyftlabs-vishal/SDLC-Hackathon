@@ -125,7 +125,14 @@ export const api = {
 
   updateTicket: (
     ticketId: string,
-    body: { status?: string; priority?: string; title?: string },
+    body: {
+      status?: string;
+      priority?: string;
+      title?: string;
+      description?: string;
+      acceptance_criteria?: string[];
+      estimated_points?: number | null;
+    },
   ) =>
     request<Ticket>(`/api/tickets/${ticketId}`, {
       method: "PATCH",

@@ -69,6 +69,7 @@ from jira_service import (
     sync_tickets_from_jira as jira_sync_tickets,
     transition_issue as jira_transition_issue,
     update_issue_assignee as jira_update_issue_assignee,
+    update_issue_description as jira_update_issue_description,
     update_issue_priority as jira_update_issue_priority,
     update_issue_summary as jira_update_issue_summary,
     verify_connection as jira_verify_connection,
@@ -350,16 +351,41 @@ async def patch_ticket(ticket_id: str, body: TicketUpdate) -> TicketResponse:
             and body.title is not None
             and body.title.strip() != ticket_before.title
         )
+        description_changed = (
+            "description" in body.model_fields_set
+            and body.description is not None
+            and body.description.strip() != ticket_before.description
+        )
+        points_changed = (
+            "estimated_points" in body.model_fields_set
+            and body.estimated_points != ticket_before.estimated_points
+        )
+        normalized_criteria = (
+            [item.strip() for item in body.acceptance_criteria if item.strip()]
+            if "acceptance_criteria" in body.model_fields_set
+            and body.acceptance_criteria is not None
+            else None
+        )
+        criteria_changed = (
+            normalized_criteria is not None
+            and normalized_criteria != ticket_before.acceptance_criteria
+        )
         updated = update_ticket(
             ticket_id,
             status=body.status,
             priority=body.priority,
             title=body.title.strip() if title_changed else None,
+            description=body.description.strip() if description_changed else None,
+            acceptance_criteria=normalized_criteria if criteria_changed else None,
+            estimated_points=body.estimated_points if points_changed else None,
             assignee=body.assignee if assignee_changed else None,
             jira_assignee_account_id=(
                 body.jira_assignee_account_id if assignee_changed else None
             ),
             sync_assignee=assignee_changed,
+            sync_description=description_changed,
+            sync_acceptance_criteria=criteria_changed,
+            sync_points=points_changed,
         )
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
@@ -398,12 +424,28 @@ async def patch_ticket(ticket_id: str, body: TicketUpdate) -> TicketResponse:
                     )
                 except Exception:
                     pass
+            if description_changed or points_changed or criteria_changed:
+                try:
+                    await jira_update_issue_description(
+                        site,
+                        ticket_before.jira_issue_key,
+                        updated,
+                    )
+                except Exception:
+                    pass
 
     if title_changed and body.title is not None:
         _activity(
             ticket_before.project_id,
             "ticket_update",
             f"Ticket renamed to “{body.title.strip()}”",
+        )
+
+    if description_changed or points_changed or criteria_changed:
+        _activity(
+            ticket_before.project_id,
+            "ticket_update",
+            f"Ticket “{updated.title}” details updated",
         )
 
     if body.status is not None and body.status != ticket_before.status:

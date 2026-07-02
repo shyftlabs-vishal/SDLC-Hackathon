@@ -298,6 +298,19 @@ async def update_issue_summary(
         return resp.status_code in (200, 204)
 
 
+async def update_issue_description(
+    site_url: str,
+    issue_key: str,
+    ticket: TicketResponse,
+) -> bool:
+    async with _client(site_url) as client:
+        resp = await client.put(
+            f"/issue/{issue_key}",
+            json={"fields": {"description": _build_description(ticket)}},
+        )
+        return resp.status_code in (200, 204)
+
+
 async def update_issue_priority(
     site_url: str,
     issue_key: str,

@@ -6,13 +6,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import {
   AlertTriangle,
   ArrowLeft,
-  CheckCircle2,
   FileText,
   GitBranch,
   Loader2,
   ShieldAlert,
   Sparkles,
-  Ticket,
+  Ticket as TicketIcon,
   User,
 } from "lucide-react";
 import { CommandCenter } from "@/components/command-center";
@@ -21,7 +20,7 @@ import { ProjectChat } from "@/components/project-chat";
 import { RequirementEditor } from "@/components/requirement-editor";
 import { api } from "@/lib/api";
 import { dispatchProjectRefresh, onProjectRefresh } from "@/lib/refresh-events";
-import type { DriftCheckResponse, ProjectDetail, TicketStatus } from "@/lib/types";
+import type { DriftCheckResponse, ProjectDetail, Ticket, TicketStatus } from "@/lib/types";
 import {
   alignmentBg,
   alignmentColor,
@@ -35,7 +34,7 @@ import { GitBranchPicker } from "@/components/git-branch-picker";
 import { JiraPanel } from "@/components/jira-panel";
 import { StatusSelect } from "@/components/status-select";
 import { TicketNudge } from "@/components/ticket-nudge";
-import { TicketTitleEditor } from "@/components/ticket-title-editor";
+import { TicketEditor, TicketPointsBadge } from "@/components/ticket-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -48,7 +47,7 @@ const TABS: { id: Tab; label: string; icon: React.ComponentType<{ className?: st
   { id: "overview", label: "Overview", icon: FileText },
   { id: "command", label: "Command Center", icon: Sparkles },
   { id: "spec", label: "Spec", icon: FileText },
-  { id: "tickets", label: "Tickets", icon: Ticket },
+  { id: "tickets", label: "Tickets", icon: TicketIcon },
   { id: "git", label: "Git Activity", icon: GitBranch },
   { id: "drift", label: "Drift", icon: ShieldAlert },
 ];
@@ -219,19 +218,24 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
     }
   }
 
-  function handleTicketTitleSaved(ticketId: string, newTitle: string) {
+  function handleTicketSaved(
+    ticketId: string,
+    updated: Pick<
+      Ticket,
+      "title" | "description" | "acceptance_criteria" | "estimated_points"
+    >,
+  ) {
     setError(null);
     setProject((current) =>
       current
         ? {
             ...current,
             tickets: current.tickets.map((ticket) =>
-              ticket.id === ticketId ? { ...ticket, title: newTitle } : ticket,
+              ticket.id === ticketId ? { ...ticket, ...updated } : ticket,
             ),
           }
         : current,
     );
-    dispatchProjectRefresh();
   }
 
   async function handleResolveDrift(alertId: string) {
@@ -478,58 +482,44 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                 <CardBody>
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <TicketTitleEditor
-                          ticketId={ticket.id}
-                          title={ticket.title}
-                          disabled={actionLoading === `ticket-${ticket.id}`}
-                          onSaved={(newTitle) => handleTicketTitleSaved(ticket.id, newTitle)}
-                          onError={setError}
-                        />
-                        {ticket.jira_issue_key && ticket.jira_url && (
-                          <a
-                            href={ticket.jira_url}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:hover:bg-blue-900/60"
-                          >
-                            {ticket.jira_issue_key}
-                          </a>
-                        )}
-                        <Badge className={typeStyles(ticket.ticket_type)}>
-                          {ticket.ticket_type}
-                        </Badge>
-                        <Badge className={priorityStyles(ticket.priority)}>
-                          {ticket.priority}
-                        </Badge>
-                        <span
-                          className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs ${
-                            ticket.assignee
-                              ? "bg-[var(--surface-muted)] theme-body"
-                              : "bg-[var(--surface-muted)] text-[var(--muted)] italic"
-                          }`}
-                          title={ticket.assignee ? "JIRA assignee" : "No assignee"}
-                        >
-                          <User className="h-3 w-3" />
-                          {ticket.assignee ?? "Unassigned"}
-                        </span>
-                        {ticket.estimated_points && (
-                          <span className="text-xs text-[var(--muted)]">
-                            {ticket.estimated_points} pts
-                          </span>
-                        )}
-                      </div>
-                      <p className="mt-2 text-sm text-[var(--muted)]">{ticket.description}</p>
-                      {ticket.acceptance_criteria.length > 0 && (
-                        <ul className="mt-3 space-y-1 text-sm theme-body">
-                          {ticket.acceptance_criteria.map((c) => (
-                            <li key={c} className="flex gap-2">
-                              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--muted)]" />
-                              {c}
-                            </li>
-                          ))}
-                        </ul>
-                      )}
+                      <TicketEditor
+                        ticket={ticket}
+                        disabled={actionLoading === `ticket-${ticket.id}`}
+                        onSaved={(updated) => handleTicketSaved(ticket.id, updated)}
+                        onError={setError}
+                        meta={
+                          <>
+                            {ticket.jira_issue_key && ticket.jira_url && (
+                              <a
+                                href={ticket.jira_url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:hover:bg-blue-900/60"
+                              >
+                                {ticket.jira_issue_key}
+                              </a>
+                            )}
+                            <Badge className={typeStyles(ticket.ticket_type)}>
+                              {ticket.ticket_type}
+                            </Badge>
+                            <Badge className={priorityStyles(ticket.priority)}>
+                              {ticket.priority}
+                            </Badge>
+                            <span
+                              className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs ${
+                                ticket.assignee
+                                  ? "bg-[var(--surface-muted)] theme-body"
+                                  : "bg-[var(--surface-muted)] text-[var(--muted)] italic"
+                              }`}
+                              title={ticket.assignee ? "JIRA assignee" : "No assignee"}
+                            >
+                              <User className="h-3 w-3" />
+                              {ticket.assignee ?? "Unassigned"}
+                            </span>
+                            <TicketPointsBadge points={ticket.estimated_points} />
+                          </>
+                        }
+                      />
                     </div>
                     <StatusSelect
                       value={ticket.status}
