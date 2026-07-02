@@ -953,8 +953,15 @@ async def unhandled_exception_handler(_request, exc: Exception):
 
 
 def main() -> None:
+    # On Windows the default console codec (cp1252) can't encode non-ASCII
+    # output; force UTF-8 so startup logs never crash the server.
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8")
+
     port = int(os.getenv("SDLC_CONDUCTOR_PORT", "8096"))
-    print(f"SDLC Conductor API → http://localhost:{port}")
+    print(f"SDLC Conductor API -> http://localhost:{port}")
     print("Start frontend: cd ../frontend && npm run dev")
     uvicorn.run("server:app", host="0.0.0.0", port=port, reload=False)
 
