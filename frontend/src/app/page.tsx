@@ -144,12 +144,12 @@ export default async function DashboardPage() {
         ) : (
           <div className="grid gap-4">
             {projects.map((project) => (
-              <Link key={project.id} href={`/projects/${project.id}`}>
+              <Link key={project.id} href={`/projects/${project.id}`} className="block min-w-0">
                 <Card className="transition-shadow hover:shadow-md">
-                  <CardBody className="flex items-center justify-between gap-4">
+                  <CardBody className="flex items-start justify-between gap-4">
                     <div className="min-w-0 flex-1">
-                      <div className="flex items-center gap-3">
-                        <h3 className="truncate font-medium theme-heading">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <h3 className="font-medium theme-heading break-words">
                           {project.name}
                         </h3>
                         {project.alignment_score !== null && (
@@ -164,19 +164,19 @@ export default async function DashboardPage() {
                         )}
                       </div>
                       {project.description && (
-                        <p className="mt-1 truncate text-sm text-[var(--muted)]">
+                        <p className="mt-1 line-clamp-2 text-sm leading-relaxed text-[var(--muted)] break-words">
                           {project.description}
                         </p>
                       )}
-                      <div className="mt-2 flex items-center gap-4 text-xs text-[var(--muted)]">
-                        <span>{project.ticket_count} tickets</span>
+                      <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-[var(--muted)]">
+                        <span className="shrink-0">{project.ticket_count} tickets</span>
                         {project.repo_url && (
-                          <span className="truncate">{project.repo_url}</span>
+                          <span className="min-w-0 break-all">{project.repo_url}</span>
                         )}
-                        <span>Updated {formatRelative(project.updated_at)}</span>
+                        <span className="shrink-0">Updated {formatRelative(project.updated_at)}</span>
                       </div>
                     </div>
-                    <ArrowRight className="h-5 w-5 shrink-0 text-[var(--muted)]" />
+                    <ArrowRight className="mt-0.5 h-5 w-5 shrink-0 text-[var(--muted)]" />
                   </CardBody>
                 </Card>
               </Link>
