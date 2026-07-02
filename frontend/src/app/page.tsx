@@ -85,26 +85,35 @@ export default async function DashboardPage() {
 
   return (
     <div className="animate-fade-in space-y-10">
-      {/* Hero */}
-      <section className="hero-gradient relative overflow-hidden rounded-3xl px-7 py-10 shadow-[var(--shadow-lg)] sm:px-10 sm:py-14">
-        <div className="hero-grid absolute inset-0 opacity-60" />
+      {/* Hero — always a deep gradient so white text stays readable in light & dark mode */}
+      <section className="hero-gradient relative overflow-hidden rounded-3xl border border-indigo-400/25 px-7 py-10 sm:px-10 sm:py-14 dark:border-indigo-500/15">
+        <div className="hero-grid pointer-events-none absolute inset-0" />
+        <div
+          className="pointer-events-none absolute -right-24 -top-24 h-72 w-72 rounded-full bg-fuchsia-400/25 blur-3xl"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-indigo-300/20 blur-3xl"
+          aria-hidden
+        />
+
         <div className="relative z-10 max-w-3xl">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-medium text-white/90 backdrop-blur-sm">
-            <Sparkles className="h-3.5 w-3.5" />
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-xs font-medium text-white shadow-sm backdrop-blur-sm">
+            <Sparkles className="h-3.5 w-3.5 text-indigo-100" />
             Powered by Continuum
           </span>
-          <h1 className="mt-5 text-3xl font-bold leading-tight tracking-tight text-white sm:text-[2.6rem] sm:leading-[1.1]">
+          <h1 className="mt-5 text-3xl font-bold leading-tight tracking-tight text-white drop-shadow-sm sm:text-[2.6rem] sm:leading-[1.1]">
             From requirement to shipped,
             <br className="hidden sm:block" /> orchestrated by AI.
           </h1>
-          <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-white/80">
+          <p className="mt-4 max-w-xl text-[15px] leading-relaxed text-indigo-50/90">
             SDLC Conductor turns requirements and documents into specs and tickets,
             tracks git activity, and flags drift — so your team always knows what to
             build next.
           </p>
           <div className="mt-7 flex flex-wrap items-center gap-3">
             <Link href="/projects/new">
-              <button className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-indigo-700 shadow-lg transition-transform hover:-translate-y-0.5">
+              <button className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-2.5 text-sm font-semibold text-indigo-700 shadow-lg shadow-indigo-900/20 transition-all hover:-translate-y-0.5 hover:shadow-xl">
                 <Plus className="h-4 w-4" />
                 New Project
               </button>
@@ -112,7 +121,7 @@ export default async function DashboardPage() {
             {projects.length > 0 && (
               <a
                 href="#projects"
-                className="inline-flex items-center gap-2 rounded-xl border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
+                className="inline-flex items-center gap-2 rounded-xl border border-white/35 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white backdrop-blur-sm transition-colors hover:bg-white/20"
               >
                 View Projects
                 <ArrowRight className="h-4 w-4" />
@@ -120,7 +129,7 @@ export default async function DashboardPage() {
             )}
           </div>
 
-          <div className="mt-9 grid max-w-lg grid-cols-2 gap-x-8 gap-y-4 sm:grid-cols-4">
+          <div className="mt-9 grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-4">
             <HeroStat label="Projects" value={String(projects.length)} />
             <HeroStat label="Tickets" value={String(totalTickets)} />
             <HeroStat
@@ -248,9 +257,9 @@ export default async function DashboardPage() {
 
 function HeroStat({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <p className="text-2xl font-bold text-white">{value}</p>
-      <p className="mt-0.5 text-xs font-medium uppercase tracking-wide text-white/60">
+    <div className="rounded-xl border border-white/20 bg-white/10 px-3 py-2.5 backdrop-blur-sm">
+      <p className="text-xl font-bold tabular-nums text-white sm:text-2xl">{value}</p>
+      <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wider text-indigo-100/75 sm:text-xs">
         {label}
       </p>
     </div>
