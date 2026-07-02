@@ -243,22 +243,22 @@ export default async function DashboardPage() {
         ) : (
           <div className="grid gap-4 md:grid-cols-2">
             {projects.map((project) => (
-              <Link key={project.id} href={`/projects/${project.id}`}>
+              <Link key={project.id} href={`/projects/${project.id}`} className="block min-w-0">
                 <div className="card-hover group h-full rounded-2xl border border-[var(--border)] bg-[var(--surface)] p-5 shadow-[var(--shadow)]">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex min-w-0 items-center gap-3">
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">
                         <FolderKanban className="h-5 w-5" />
                       </div>
-                      <h3 className="truncate text-[15px] font-semibold theme-heading">
+                      <h3 className="break-words text-[15px] font-semibold theme-heading">
                         {project.name}
                       </h3>
                     </div>
-                    <ArrowRight className="h-5 w-5 shrink-0 text-[var(--muted)] transition-transform group-hover:translate-x-1 group-hover:text-[var(--accent)]" />
+                    <ArrowRight className="mt-0.5 h-5 w-5 shrink-0 text-[var(--muted)] transition-transform group-hover:translate-x-1 group-hover:text-[var(--accent)]" />
                   </div>
 
                   {project.description && (
-                    <p className="mt-3 line-clamp-2 text-sm leading-relaxed text-[var(--muted)]">
+                    <p className="mt-3 line-clamp-2 break-words text-sm leading-relaxed text-[var(--muted)]">
                       {project.description}
                     </p>
                   )}
@@ -279,8 +279,8 @@ export default async function DashboardPage() {
                     </Badge>
                   </div>
 
-                  <div className="mt-4 flex items-center justify-between border-t border-[var(--border)] pt-3 text-xs text-[var(--muted)]">
-                    <span className="truncate">
+                  <div className="mt-4 flex flex-wrap items-center justify-between gap-x-4 gap-y-1 border-t border-[var(--border)] pt-3 text-xs text-[var(--muted)]">
+                    <span className="min-w-0 break-all">
                       {project.repo_url ? project.repo_url.replace(/^https?:\/\//, "") : "No repo linked"}
                     </span>
                     <span className="shrink-0">Updated {formatRelative(project.updated_at)}</span>
