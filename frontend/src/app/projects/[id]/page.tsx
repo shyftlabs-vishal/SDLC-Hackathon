@@ -480,15 +480,17 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                         <Badge className={priorityStyles(ticket.priority)}>
                           {ticket.priority}
                         </Badge>
-                        {ticket.assignee && (
-                          <span
-                            className="inline-flex items-center gap-1 rounded bg-[var(--surface-muted)] px-2 py-0.5 text-xs theme-body"
-                            title="JIRA assignee"
-                          >
-                            <User className="h-3 w-3" />
-                            {ticket.assignee}
-                          </span>
-                        )}
+                        <span
+                          className={`inline-flex items-center gap-1 rounded px-2 py-0.5 text-xs ${
+                            ticket.assignee
+                              ? "bg-[var(--surface-muted)] theme-body"
+                              : "bg-[var(--surface-muted)] text-[var(--muted)] italic"
+                          }`}
+                          title={ticket.assignee ? "JIRA assignee" : "No assignee"}
+                        >
+                          <User className="h-3 w-3" />
+                          {ticket.assignee ?? "Unassigned"}
+                        </span>
                         {ticket.estimated_points && (
                           <span className="text-xs text-[var(--muted)]">
                             {ticket.estimated_points} pts
