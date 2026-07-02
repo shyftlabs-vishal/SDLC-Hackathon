@@ -655,7 +655,12 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                 <p className="text-[var(--muted)]">
                   No drift alerts. Sync git activity and run a drift check.
                 </p>
-                <Button className="mt-4" onClick={handleCheckDrift} disabled={!project.spec}>
+                <Button
+                  className="mt-4"
+                  onClick={handleCheckDrift}
+                  loading={actionLoading === "drift"}
+                  disabled={!project.spec || actionLoading === "drift"}
+                >
                   Run Drift Check
                 </Button>
               </CardBody>
