@@ -8,6 +8,7 @@ import { CommandPalette, useCommandPalette } from "@/components/command-palette"
 import { SidebarHealth } from "@/components/sidebar-health";
 import { SidebarProjectPanel } from "@/components/sidebar-project-panel";
 import { SidebarRecentProjects } from "@/components/sidebar-recent-projects";
+import { ThemeToggle } from "@/components/theme-toggle";
 
 const GLOBAL_NAV = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -87,6 +88,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="shrink-0 space-y-3 border-t border-white/10 p-4">
+          <ThemeToggle />
           <SidebarHealth />
           <p className="text-center text-[10px] text-[var(--sidebar-muted)]">
             Powered by Continuum

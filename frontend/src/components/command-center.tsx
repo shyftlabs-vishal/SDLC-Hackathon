@@ -20,6 +20,7 @@ import type {
   StandupDigestResult,
 } from "@/lib/types";
 import { ProjectChat } from "@/components/project-chat";
+import { StatusBadge } from "@/components/status-select";
 import { alignmentBg, severityStyles } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -141,7 +142,7 @@ export function CommandCenter({
                 AI Command Center
               </span>
             </div>
-            <h2 className="mt-1 text-xl font-semibold text-slate-900">
+            <h2 className="mt-1 text-xl font-semibold theme-heading">
               One click. Full sprint intelligence.
             </h2>
             <p className="mt-1 max-w-xl text-sm text-[var(--muted)]">
@@ -253,7 +254,7 @@ export function CommandCenter({
             <Empty hint="Run Magic or generate standup" />
           ) : (
             <div className="min-w-0 space-y-4">
-              <p className="break-words text-lg font-medium text-slate-900">{standup.headline}</p>
+              <p className="break-words text-lg font-medium theme-heading">{standup.headline}</p>
               <p className="break-words text-sm text-[var(--muted)]">{standup.summary}</p>
               {standup.wins.length > 0 && (
                 <TagSection title="Wins" items={standup.wins} color="emerald" />
@@ -304,10 +305,10 @@ export function CommandCenter({
               {sprint.sprints.map((s) => (
                 <div
                   key={s.name}
-                  className="rounded-xl border border-[var(--border)] bg-slate-50/50 p-4"
+                  className="rounded-xl border border-[var(--border)] bg-[var(--surface-muted)]/50 p-4"
                 >
                   <div className="flex items-center justify-between">
-                    <h3 className="font-semibold text-slate-900">{s.name}</h3>
+                    <h3 className="font-semibold theme-heading">{s.name}</h3>
                     <Badge className="bg-indigo-100 text-indigo-700">
                       {s.total_points} pts
                     </Badge>
@@ -315,7 +316,7 @@ export function CommandCenter({
                   <p className="mt-1 text-sm text-[var(--muted)]">{s.goal}</p>
                   <ul className="mt-3 space-y-1">
                     {s.ticket_titles.map((t) => (
-                      <li key={t} className="flex items-start gap-2 text-sm text-slate-700">
+                      <li key={t} className="flex items-start gap-2 text-sm theme-body">
                         <Target className="mt-0.5 h-3.5 w-3.5 shrink-0 text-indigo-500" />
                         {t}
                       </li>
@@ -384,7 +385,7 @@ export function CommandCenter({
                     <Badge className={severityStyles(item.severity)}>{item.severity}</Badge>
                   </div>
                   <p className="mt-1 text-sm text-[var(--muted)]">{item.description}</p>
-                  <p className="mt-2 text-xs text-slate-600">
+                  <p className="mt-2 text-xs theme-body">
                     <strong>Fix:</strong> {item.recommendation}
                   </p>
                 </div>
@@ -419,20 +420,20 @@ export function CommandCenter({
                 className="rounded-lg border border-[var(--border)] px-4 py-3"
               >
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="font-medium text-slate-900">{link.ticket_title}</span>
+                  <span className="font-medium theme-heading">{link.ticket_title}</span>
                   <Badge className="bg-blue-100 text-blue-700">
                     {Math.round(link.confidence * 100)}% match
                   </Badge>
                   {link.suggested_status && (
-                    <Badge className="bg-violet-100 text-violet-700">
-                      → {link.suggested_status.replace("_", " ")}
-                    </Badge>
+                    <span className="inline-flex items-center gap-1 text-xs text-[var(--muted)]">
+                      → <StatusBadge status={link.suggested_status} />
+                    </span>
                   )}
                 </div>
                 <p className="mt-1 font-mono text-xs text-[var(--muted)]">
                   {link.commit_shas.join(", ")}
                 </p>
-                <p className="mt-1 text-sm text-slate-600">{link.evidence}</p>
+                <p className="mt-1 text-sm theme-body">{link.evidence}</p>
               </div>
             ))}
           </CardBody>
@@ -476,7 +477,7 @@ function ScoreCard({
                   ? "text-emerald-600"
                   : score !== null && score >= 50
                     ? "text-amber-600"
-                    : "text-slate-900"
+                    : "theme-heading"
               }`}
             >
               {display}
@@ -519,7 +520,7 @@ function CopyBlock({
   const lines = formatScriptForDisplay(text).split(/\n/).map((line) => line.trimEnd());
 
   return (
-    <div className="w-full rounded-lg border border-[var(--border)] bg-slate-50 p-4">
+    <div className="w-full rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] p-4">
       <div className="mb-3 flex items-center justify-between gap-2">
         <span className="text-xs font-semibold uppercase text-[var(--muted)]">{label}</span>
         <button
@@ -530,7 +531,7 @@ function CopyBlock({
           <Copy className="h-3 w-3" /> Copy
         </button>
       </div>
-      <div className="text-readable w-full space-y-2.5 text-sm leading-7 text-slate-700">
+      <div className="text-readable w-full space-y-2.5 text-sm leading-7 theme-body">
         {lines.map((line, i) =>
           line === "" ? (
             <div key={i} className="h-1" />

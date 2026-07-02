@@ -28,11 +28,12 @@ import {
   formatRelative,
   priorityStyles,
   severityStyles,
-  statusStyles,
   typeStyles,
 } from "@/lib/utils";
 import { GitBranchPicker } from "@/components/git-branch-picker";
 import { JiraPanel } from "@/components/jira-panel";
+import { StatusSelect } from "@/components/status-select";
+import { TicketNudge } from "@/components/ticket-nudge";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -253,7 +254,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
     <div className="animate-fade-in min-w-0 space-y-6">
       <Link
         href="/"
-        className="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-slate-900"
+        className="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:theme-heading"
       >
         <ArrowLeft className="h-4 w-4" />
         Dashboard
@@ -262,7 +263,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+            <h1 className="text-2xl font-semibold tracking-tight theme-heading">
               {project.name}
             </h1>
             {project.alignment_score !== null && (
@@ -322,7 +323,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
               tab === id
                 ? "border-[var(--accent)] text-[var(--accent)]"
-                : "border-transparent text-[var(--muted)] hover:text-slate-700"
+                : "border-transparent text-[var(--muted)] hover:theme-body"
             }`}
           >
             <Icon className="h-4 w-4" />
@@ -337,7 +338,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       </div>
 
       {tab === "overview" && (
-        <div className="space-y-6">
+        <div className="space-y-8 animate-fade-in">
           {projectId && (
             <OverviewAIBrief
               projectId={projectId}
@@ -352,7 +353,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               <CardHeader title="Requirement" />
               <CardBody className="space-y-4">
                 <textarea
-                  className="w-full min-h-[160px] resize-y rounded-lg border border-[var(--border)] p-3 font-mono text-sm focus:border-[var(--accent)] focus:outline-none focus:ring-2 focus:ring-blue-100"
+                  className="theme-input w-full min-h-[160px] resize-y rounded-lg border p-3 font-mono text-sm"
                   value={requirement}
                   onChange={(e) => setRequirement(e.target.value)}
                   placeholder="Paste or edit your requirement..."
@@ -460,7 +461,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-medium text-slate-900">{ticket.title}</h3>
+                        <h3 className="font-medium theme-heading">{ticket.title}</h3>
                         {ticket.jira_issue_key && ticket.jira_url && (
                           <a
                             href={ticket.jira_url}
@@ -479,7 +480,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                         </Badge>
                         {ticket.assignee && (
                           <span
-                            className="inline-flex items-center gap-1 rounded bg-slate-100 px-2 py-0.5 text-xs text-slate-600"
+                            className="inline-flex items-center gap-1 rounded bg-[var(--surface-muted)] px-2 py-0.5 text-xs theme-body"
                             title="JIRA assignee"
                           >
                             <User className="h-3 w-3" />
@@ -494,31 +495,30 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                       </div>
                       <p className="mt-2 text-sm text-[var(--muted)]">{ticket.description}</p>
                       {ticket.acceptance_criteria.length > 0 && (
-                        <ul className="mt-3 space-y-1 text-sm text-slate-600">
+                        <ul className="mt-3 space-y-1 text-sm theme-body">
                           {ticket.acceptance_criteria.map((c) => (
                             <li key={c} className="flex gap-2">
-                              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-slate-400" />
+                              <CheckCircle2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-[var(--muted)]" />
                               {c}
                             </li>
                           ))}
                         </ul>
                       )}
                     </div>
-                    <select
-                      className="rounded-lg border border-[var(--border)] bg-white px-3 py-1.5 text-sm capitalize"
+                    <StatusSelect
                       value={ticket.status}
                       disabled={actionLoading === `ticket-${ticket.id}`}
-                      onChange={(e) =>
-                        handleTicketStatus(ticket.id, e.target.value as TicketStatus)
-                      }
-                    >
-                      {["backlog", "in_progress", "in_review", "done", "blocked"].map((s) => (
-                        <option key={s} value={s}>
-                          {s.replace("_", " ")}
-                        </option>
-                      ))}
-                    </select>
+                      onChange={(status) => handleTicketStatus(ticket.id, status)}
+                    />
                   </div>
+                  <TicketNudge
+                    ticket={ticket}
+                    onError={setError}
+                    onSuccess={(msg) => {
+                      setError(null);
+                      if (projectId) dispatchProjectRefresh();
+                    }}
+                  />
                 </CardBody>
               </Card>
             ))
@@ -564,11 +564,11 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               <div className="divide-y divide-[var(--border)] pt-2">
                 {project.recent_commits.map((commit) => (
                   <div key={commit.id} className="flex gap-4 py-4 first:pt-0 last:pb-0">
-                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-slate-100 font-mono text-xs text-slate-600">
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--surface-muted)] font-mono text-xs theme-body">
                       {commit.sha.slice(0, 7)}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="font-medium text-slate-900">{commit.message}</p>
+                      <p className="font-medium theme-heading">{commit.message}</p>
                       <p className="mt-0.5 text-xs text-[var(--muted)]">
                         {commit.author} · {formatRelative(commit.committed_at)} · +
                         {commit.additions}/-{commit.deletions}
@@ -578,7 +578,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                           {commit.files_changed.slice(0, 6).map((f) => (
                             <span
                               key={f}
-                              className="rounded bg-slate-100 px-1.5 py-0.5 font-mono text-[10px] text-slate-600"
+                              className="rounded bg-[var(--surface-muted)] px-1.5 py-0.5 font-mono text-[10px] theme-body"
                             >
                               {f}
                             </span>
@@ -621,7 +621,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                     {driftResult.alignment_score}%
                   </div>
                   <div>
-                    <p className="font-medium text-slate-900">Latest drift analysis</p>
+                    <p className="font-medium theme-heading">Latest drift analysis</p>
                     <p className="mt-1 text-sm text-[var(--muted)]">{driftResult.summary}</p>
                   </div>
                 </div>
@@ -674,23 +674,23 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                       <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-500" />
                       <div>
                         <div className="flex flex-wrap items-center gap-2">
-                          <h3 className="font-medium text-slate-900">{alert.title}</h3>
+                          <h3 className="font-medium theme-heading">{alert.title}</h3>
                           <Badge className={severityStyles(alert.severity)}>
                             {alert.severity}
                           </Badge>
                         </div>
                         <p className="mt-2 text-sm text-[var(--muted)]">{alert.description}</p>
-                        <div className="mt-3 space-y-2 rounded-lg bg-slate-50 p-3 text-sm">
+                        <div className="mt-3 space-y-2 rounded-lg bg-[var(--surface-muted)] p-3 text-sm">
                           <p>
-                            <span className="font-medium text-slate-700">Spec ref:</span>{" "}
+                            <span className="font-medium theme-body">Spec ref:</span>{" "}
                             {alert.spec_reference}
                           </p>
                           <p>
-                            <span className="font-medium text-slate-700">Evidence:</span>{" "}
+                            <span className="font-medium theme-body">Evidence:</span>{" "}
                             {alert.code_evidence}
                           </p>
                           <p>
-                            <span className="font-medium text-slate-700">Recommendation:</span>{" "}
+                            <span className="font-medium theme-body">Recommendation:</span>{" "}
                             {alert.recommendation}
                           </p>
                         </div>
@@ -726,7 +726,7 @@ function StatRow({
   return (
     <div className="flex items-center justify-between border-b border-[var(--border)] pb-3 last:border-0 last:pb-0">
       <span className="text-sm text-[var(--muted)]">{label}</span>
-      <span className={`text-sm font-medium ${valueClass ?? "text-slate-900"}`}>{value}</span>
+      <span className={`text-sm font-medium ${valueClass ?? "theme-heading"}`}>{value}</span>
     </div>
   );
 }
@@ -737,7 +737,7 @@ function Section({ title, content }: { title: string; content: string }) {
       <h3 className="text-sm font-semibold uppercase tracking-wide text-[var(--muted)]">
         {title}
       </h3>
-      <p className="mt-2 text-sm leading-relaxed text-slate-700">{content}</p>
+      <p className="mt-2 text-sm leading-relaxed theme-body">{content}</p>
     </div>
   );
 }
@@ -759,7 +759,7 @@ function ListSection({
       </h3>
       <ul className={`mt-2 space-y-1.5 ${compact ? "text-sm" : ""}`}>
         {items.map((item) => (
-          <li key={item} className="flex gap-2 text-sm text-slate-700">
+          <li key={item} className="flex gap-2 text-sm theme-body">
             <span className="text-[var(--muted)]">•</span>
             {item}
           </li>

@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
+  Bell,
   GitBranch,
   Link2,
   ShieldAlert,
@@ -22,6 +23,7 @@ const EVENT_ICONS: Record<string, React.ComponentType<{ className?: string }>> =
   jira_push: Link2,
   jira_sync: Link2,
   jira_import: Link2,
+  jira_nudge: Bell,
   ticket_update: Ticket,
   apply_links: GitBranch,
   project_created: Sparkles,

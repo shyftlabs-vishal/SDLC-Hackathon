@@ -64,7 +64,7 @@ export function ProjectChat({ projectId, compact, onError }: ProjectChatProps) {
                 type="button"
                 onClick={() => ask(prompt)}
                 disabled={loading}
-                className="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs text-indigo-700 hover:bg-indigo-100 disabled:opacity-50"
+            className="rounded-full border border-indigo-200 bg-indigo-50 px-3 py-1 text-xs text-indigo-700 hover:bg-indigo-100 disabled:opacity-50 dark:border-indigo-800 dark:bg-indigo-950/50 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
               >
                 {prompt}
               </button>
@@ -74,7 +74,7 @@ export function ProjectChat({ projectId, compact, onError }: ProjectChatProps) {
 
         {history.length > 0 && (
           <div
-            className={`space-y-3 overflow-y-auto rounded-lg bg-slate-50 p-3 ${
+            className={`space-y-3 overflow-y-auto rounded-lg bg-[var(--surface-muted)] p-3 ${
               compact ? "max-h-48" : "max-h-72"
             }`}
           >
@@ -85,10 +85,10 @@ export function ProjectChat({ projectId, compact, onError }: ProjectChatProps) {
                     {msg.content as string}
                   </span>
                 ) : (
-                  <div className="rounded-lg border border-[var(--border)] bg-white p-3 text-left">
-                    <p className="whitespace-pre-wrap">{(msg.content as ProjectChatResult).answer}</p>
+                  <div className="rounded-lg border border-[var(--border)] bg-[var(--surface)] p-3 text-left">
+                    <p className="whitespace-pre-wrap theme-body">{(msg.content as ProjectChatResult).answer}</p>
                     {(msg.content as ProjectChatResult).suggested_actions.length > 0 && (
-                      <ul className="mt-2 space-y-1 text-xs text-indigo-700">
+                      <ul className="mt-2 space-y-1 text-xs text-indigo-700 dark:text-indigo-300">
                         {(msg.content as ProjectChatResult).suggested_actions.map((a) => (
                           <li key={a}>→ {a}</li>
                         ))}
@@ -103,7 +103,7 @@ export function ProjectChat({ projectId, compact, onError }: ProjectChatProps) {
 
         <form onSubmit={handleSubmit} className="flex gap-2">
           <input
-            className="flex-1 rounded-lg border border-[var(--border)] px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-100"
+            className="theme-input flex-1 rounded-lg border px-3 py-2 text-sm"
             placeholder="Ask anything about this project…"
             value={chatQ}
             onChange={(e) => setChatQ(e.target.value)}

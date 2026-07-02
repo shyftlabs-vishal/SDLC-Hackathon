@@ -42,7 +42,7 @@ export default async function DashboardPage() {
     <div className="animate-fade-in space-y-8">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+          <h1 className="text-2xl font-semibold tracking-tight theme-heading">
             Dashboard
           </h1>
           <p className="mt-1 text-sm text-[var(--muted)]">
@@ -55,11 +55,11 @@ export default async function DashboardPage() {
       </div>
 
       {error && (
-        <Card className="border-amber-200 bg-amber-50">
+        <Card className="border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/30">
           <CardBody>
-            <p className="text-sm text-amber-800">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
               <strong>Backend unavailable.</strong> {error}. Start the API with{" "}
-              <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-xs">
+              <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-xs dark:bg-amber-900/50 dark:text-amber-100">
                 cd backend && python server.py
               </code>
             </p>
@@ -68,9 +68,9 @@ export default async function DashboardPage() {
       )}
 
       {health && !health.llm_configured && (
-        <Card className="border-amber-200 bg-amber-50">
+        <Card className="border-amber-200 bg-amber-50 dark:border-amber-900/50 dark:bg-amber-950/30">
           <CardBody>
-            <p className="text-sm text-amber-800">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
               <strong>
                 {health.llm_provider === "AURA"
                   ? "SMART_GATEWAY_URL / SMART_GATEWAY_API_KEY"
@@ -84,7 +84,7 @@ export default async function DashboardPage() {
                 LLM_PROVIDER={health.llm_provider}
               </code>{" "}
               and add the matching key to{" "}
-              <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-xs">
+              <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-xs dark:bg-amber-900/50 dark:text-amber-100">
                 backend/.env
               </code>{" "}
               to enable spec generation and drift detection.
@@ -92,7 +92,7 @@ export default async function DashboardPage() {
                 <>
                   {" "}
                   Default model:{" "}
-                  <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-xs">
+                  <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-xs dark:bg-amber-900/50 dark:text-amber-100">
                     {health.default_model}
                   </code>
                 </>
@@ -124,7 +124,7 @@ export default async function DashboardPage() {
 
       <div>
         <div className="mb-4 flex items-center justify-between">
-          <h2 className="text-lg font-semibold text-slate-900">Projects</h2>
+          <h2 className="text-lg font-semibold theme-heading">Projects</h2>
         </div>
 
         {projects.length === 0 ? (
@@ -133,7 +133,7 @@ export default async function DashboardPage() {
               <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50">
                 <Sparkles className="h-7 w-7 text-blue-600" />
               </div>
-              <h3 className="text-lg font-medium text-slate-900">No projects yet</h3>
+              <h3 className="text-lg font-medium theme-heading">No projects yet</h3>
               <p className="mt-2 max-w-md text-sm text-[var(--muted)]">
                 Create your first project, paste a requirement, and SDLC Conductor
                 will generate a spec and tickets automatically.
@@ -151,7 +151,7 @@ export default async function DashboardPage() {
                   <CardBody className="flex items-center justify-between gap-4">
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-3">
-                        <h3 className="truncate font-medium text-slate-900">
+                        <h3 className="truncate font-medium theme-heading">
                           {project.name}
                         </h3>
                         {project.alignment_score !== null && (
@@ -178,7 +178,7 @@ export default async function DashboardPage() {
                         <span>Updated {formatRelative(project.updated_at)}</span>
                       </div>
                     </div>
-                    <ArrowRight className="h-5 w-5 shrink-0 text-slate-300" />
+                    <ArrowRight className="h-5 w-5 shrink-0 text-[var(--muted)]" />
                   </CardBody>
                 </Card>
               </Link>
@@ -205,14 +205,14 @@ function StatCard({
     <Card>
       <CardBody>
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100">
-            <Icon className="h-5 w-5 text-slate-600" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[var(--surface-muted)]">
+            <Icon className="h-5 w-5 theme-body" />
           </div>
           <div>
             <p className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
               {label}
             </p>
-            <p className={`text-2xl font-semibold ${accent ?? "text-slate-900"}`}>
+            <p className={`text-2xl font-semibold ${accent ?? "theme-heading"}`}>
               {value}
             </p>
           </div>

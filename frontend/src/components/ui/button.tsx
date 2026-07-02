@@ -6,8 +6,8 @@ const variants: Record<Variant, string> = {
   primary:
     "bg-[var(--accent)] text-white hover:bg-[var(--accent-hover)] shadow-sm",
   secondary:
-    "bg-white text-slate-700 border border-[var(--border)] hover:bg-slate-50",
-  ghost: "text-slate-600 hover:bg-slate-100",
+    "bg-[var(--surface)] text-[var(--body)] border border-[var(--border)] hover:bg-[var(--hover)]",
+  ghost: "text-[var(--muted)] hover:bg-[var(--hover)]",
   danger: "bg-red-600 text-white hover:bg-red-700",
 };
 

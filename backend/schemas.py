@@ -494,3 +494,17 @@ class JiraImportResponse(BaseModel):
     enriched: int = 0
     errors: list[str]
     tickets: list[TicketResponse]
+
+
+class JiraNudgeRequest(BaseModel):
+    message: str = Field(default="", max_length=2000)
+    recipient_email: str | None = Field(default=None, max_length=320)
+    recipient_account_id: str | None = Field(default=None, max_length=128)
+
+
+class JiraNudgeResponse(BaseModel):
+    issue_key: str
+    recipient_name: str
+    recipient_email: str | None = None
+    comment_id: str
+    comment_url: str

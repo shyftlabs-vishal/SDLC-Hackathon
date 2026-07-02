@@ -202,7 +202,7 @@ export function CommandPalette({
       role="presentation"
     >
       <div
-        className="w-full max-w-lg overflow-hidden rounded-xl border border-[var(--border)] bg-white shadow-2xl"
+        className="w-full max-w-lg overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--surface)] shadow-2xl"
         onClick={(e) => e.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -215,9 +215,9 @@ export function CommandPalette({
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Search commands, tabs, projects…"
-            className="flex-1 bg-transparent text-sm text-slate-900 outline-none placeholder:text-[var(--muted)]"
+            className="flex-1 bg-transparent text-sm theme-heading outline-none placeholder:text-[var(--muted)]"
           />
-          <kbd className="hidden rounded border border-[var(--border)] bg-slate-50 px-1.5 py-0.5 text-[10px] text-[var(--muted)] sm:inline">
+          <kbd className="hidden rounded border border-[var(--border)] bg-[var(--surface-muted)] px-1.5 py-0.5 text-[10px] text-[var(--muted)] sm:inline">
             esc
           </kbd>
         </div>
@@ -247,7 +247,7 @@ export function CommandPalette({
                       "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors",
                       index === activeIndex
                         ? "bg-indigo-50 text-indigo-900"
-                        : "text-slate-700 hover:bg-slate-50",
+                        : "theme-body hover:bg-[var(--hover)]",
                     )}
                   >
                     <Icon className="h-4 w-4 shrink-0 opacity-60" />

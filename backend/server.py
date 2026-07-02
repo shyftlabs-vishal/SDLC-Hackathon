@@ -63,6 +63,7 @@ from jira_service import (
     fetch_issues_to_import as jira_fetch_issues_to_import,
     is_configured as jira_is_configured,
     normalize_site_url,
+    nudge_user_on_issue as jira_nudge_user_on_issue,
     push_tickets as jira_push_tickets,
     sync_tickets_from_jira as jira_sync_tickets,
     transition_issue as jira_transition_issue,
@@ -97,6 +98,8 @@ from schemas import (
     JiraConfigRequest,
     JiraImportRequest,
     JiraImportResponse,
+    JiraNudgeRequest,
+    JiraNudgeResponse,
     JiraPushResponse,
     JiraStatusResponse,
     JiraSyncResponse,
@@ -367,6 +370,53 @@ async def patch_ticket(ticket_id: str, body: TicketUpdate) -> TicketResponse:
         )
 
     return updated
+
+
+@app.post("/api/tickets/{ticket_id}/jira/nudge", response_model=JiraNudgeResponse)
+async def jira_nudge_ticket(ticket_id: str, body: JiraNudgeRequest) -> JiraNudgeResponse:
+    try:
+        ticket = get_ticket(ticket_id)
+    except KeyError as exc:
+        raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+    if not ticket.jira_issue_key:
+        raise HTTPException(
+            status_code=400,
+            detail="Ticket is not linked to JIRA. Push or import it first.",
+        )
+
+    project = get_project_detail(ticket.project_id)
+    site = _jira_site_for_project(project)
+    if not site or not jira_is_configured(site):
+        raise HTTPException(status_code=503, detail="JIRA not configured.")
+
+    account_id = body.recipient_account_id or ticket.jira_assignee_account_id
+    email = (body.recipient_email or "").strip() or None
+    if not email and not account_id:
+        raise HTTPException(
+            status_code=400,
+            detail="Enter the recipient's Atlassian email, or assign someone on the ticket first.",
+        )
+
+    try:
+        result = await jira_nudge_user_on_issue(
+            site,
+            ticket.jira_issue_key,
+            recipient_email=email,
+            recipient_account_id=account_id if not email else None,
+            message=body.message,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except Exception as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    _activity(
+        ticket.project_id,
+        "jira_nudge",
+        f"Nudged {result['recipient_name']} on {ticket.jira_issue_key}",
+    )
+    return JiraNudgeResponse(**result)
 
 
 def _jira_site_for_project(project: ProjectDetail) -> str:

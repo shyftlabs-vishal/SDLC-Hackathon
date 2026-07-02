@@ -32,7 +32,7 @@ export function GitBranchPicker({
 
   return (
     <div
-      className={`rounded-xl border border-[var(--border)] bg-slate-50/80 ${
+      className={`rounded-xl border border-[var(--border)] bg-[var(--surface-muted)] ${
         compact ? "p-2.5" : "p-4"
       }`}
     >
@@ -44,7 +44,7 @@ export function GitBranchPicker({
         <div className="flex min-w-0 flex-1 items-center gap-2.5">
           <GitBranch className="h-4 w-4 shrink-0 text-[var(--muted)]" />
           <select
-            className="min-w-[160px] max-w-md flex-1 rounded-lg border border-[var(--border)] bg-white px-3.5 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+            className="theme-input min-w-[160px] max-w-md flex-1 rounded-lg border px-3.5 py-2.5 text-sm disabled:cursor-not-allowed disabled:opacity-50"
             value={selectedBranch}
             disabled={disabled || loading || branches.length === 0}
             onChange={(e) => onSelect(e.target.value)}
