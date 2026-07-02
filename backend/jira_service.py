@@ -281,6 +281,19 @@ async def get_issue(site_url: str, issue_key: str) -> dict[str, Any]:
         return resp.json()
 
 
+async def update_issue_summary(
+    site_url: str,
+    issue_key: str,
+    summary: str,
+) -> bool:
+    async with _client(site_url) as client:
+        resp = await client.put(
+            f"/issue/{issue_key}",
+            json={"fields": {"summary": summary[:255]}},
+        )
+        return resp.status_code in (200, 204)
+
+
 async def update_issue_priority(
     site_url: str,
     issue_key: str,

@@ -70,6 +70,7 @@ from jira_service import (
     transition_issue as jira_transition_issue,
     update_issue_assignee as jira_update_issue_assignee,
     update_issue_priority as jira_update_issue_priority,
+    update_issue_summary as jira_update_issue_summary,
     verify_connection as jira_verify_connection,
     verify_project as jira_verify_project,
 )
@@ -343,10 +344,16 @@ async def patch_ticket(ticket_id: str, body: TicketUpdate) -> TicketResponse:
             body.assignee != ticket_before.assignee
             or body.jira_assignee_account_id != ticket_before.jira_assignee_account_id
         )
+        title_changed = (
+            "title" in body.model_fields_set
+            and body.title is not None
+            and body.title.strip() != ticket_before.title
+        )
         updated = update_ticket(
             ticket_id,
             status=body.status,
             priority=body.priority,
+            title=body.title.strip() if title_changed else None,
             assignee=body.assignee if assignee_changed else None,
             jira_assignee_account_id=(
                 body.jira_assignee_account_id if assignee_changed else None
@@ -381,6 +388,22 @@ async def patch_ticket(ticket_id: str, body: TicketUpdate) -> TicketResponse:
                     )
                 except Exception:
                     pass
+            if title_changed and body.title is not None:
+                try:
+                    await jira_update_issue_summary(
+                        site,
+                        ticket_before.jira_issue_key,
+                        body.title.strip(),
+                    )
+                except Exception:
+                    pass
+
+    if title_changed and body.title is not None:
+        _activity(
+            ticket_before.project_id,
+            "ticket_update",
+            f"Ticket renamed to “{body.title.strip()}”",
+        )
 
     if body.status is not None and body.status != ticket_before.status:
         _activity(

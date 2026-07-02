@@ -125,7 +125,7 @@ export const api = {
 
   updateTicket: (
     ticketId: string,
-    body: { status?: string; priority?: string },
+    body: { status?: string; priority?: string; title?: string },
   ) =>
     request<Ticket>(`/api/tickets/${ticketId}`, {
       method: "PATCH",

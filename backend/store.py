@@ -472,12 +472,15 @@ def update_ticket(
     ticket_id: str,
     status: TicketStatus | None = None,
     priority: TicketPriority | None = None,
+    title: str | None = None,
     assignee: str | None = None,
     jira_assignee_account_id: str | None = None,
     *,
     sync_assignee: bool = False,
 ) -> TicketResponse:
     updates: dict[str, Any] = {"updated_at": _now().isoformat()}
+    if title is not None:
+        updates["title"] = title.strip()
     if status is not None:
         updates["status"] = status.value
     if priority is not None:

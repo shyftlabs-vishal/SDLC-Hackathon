@@ -35,6 +35,7 @@ import { GitBranchPicker } from "@/components/git-branch-picker";
 import { JiraPanel } from "@/components/jira-panel";
 import { StatusSelect } from "@/components/status-select";
 import { TicketNudge } from "@/components/ticket-nudge";
+import { TicketTitleEditor } from "@/components/ticket-title-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -216,6 +217,21 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
     } finally {
       setActionLoading(null);
     }
+  }
+
+  function handleTicketTitleSaved(ticketId: string, newTitle: string) {
+    setError(null);
+    setProject((current) =>
+      current
+        ? {
+            ...current,
+            tickets: current.tickets.map((ticket) =>
+              ticket.id === ticketId ? { ...ticket, title: newTitle } : ticket,
+            ),
+          }
+        : current,
+    );
+    dispatchProjectRefresh();
   }
 
   async function handleResolveDrift(alertId: string) {
@@ -463,7 +479,13 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                   <div className="flex flex-wrap items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="font-medium theme-heading">{ticket.title}</h3>
+                        <TicketTitleEditor
+                          ticketId={ticket.id}
+                          title={ticket.title}
+                          disabled={actionLoading === `ticket-${ticket.id}`}
+                          onSaved={(newTitle) => handleTicketTitleSaved(ticket.id, newTitle)}
+                          onError={setError}
+                        />
                         {ticket.jira_issue_key && ticket.jira_url && (
                           <a
                             href={ticket.jira_url}
