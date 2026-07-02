@@ -75,12 +75,10 @@ export function SidebarOnboarding({
   const pct = Math.round((doneCount / items.length) * 100);
 
   return (
-    <div className="space-y-2 rounded-lg bg-white/[0.04] px-3 py-3">
+    <div className="space-y-2.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-3.5 py-3.5">
       <div className="flex items-center justify-between">
-        <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--sidebar-muted)]">
-          Setup
-        </p>
-        <span className="text-[10px] font-medium text-slate-300">
+        <p className="sidebar-label">Setup</p>
+        <span className="text-xs font-medium text-slate-300">
           {doneCount}/{items.length}
         </span>
       </div>
@@ -90,9 +88,9 @@ export function SidebarOnboarding({
           style={{ width: `${pct}%` }}
         />
       </div>
-      <ul className="space-y-1.5 pt-1">
+      <ul className="space-y-2 pt-1">
         {items.map((item) => (
-          <li key={item.id} className="flex items-center gap-2 text-xs">
+          <li key={item.id} className="flex items-center gap-2.5 text-[13px] leading-snug">
             {item.done ? (
               <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-emerald-400" />
             ) : (

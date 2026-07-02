@@ -26,7 +26,7 @@ function StatusRow({
   ok: boolean;
 }) {
   return (
-    <div className="flex items-center gap-2.5 text-xs">
+    <div className="flex items-center gap-2.5 text-[13px]">
       <Icon className="h-3.5 w-3.5 shrink-0 text-[var(--sidebar-muted)]" />
       <span className="flex-1 truncate text-[var(--sidebar-muted)]">{label}</span>
       <StatusDot ok={ok} />
@@ -74,10 +74,8 @@ export function SidebarHealth() {
   const llmOk = health?.llm_configured ?? false;
 
   return (
-    <div className="space-y-2.5 rounded-lg bg-white/[0.04] px-3 py-3">
-      <p className="text-[10px] font-semibold uppercase tracking-wider text-[var(--sidebar-muted)]">
-        System
-      </p>
+    <div className="space-y-2.5 rounded-xl border border-white/[0.06] bg-white/[0.04] px-3.5 py-3.5">
+      <p className="sidebar-label">System</p>
       <StatusRow
         icon={Circle}
         label="API"

@@ -21,7 +21,7 @@ import type {
 } from "@/lib/types";
 import { ProjectChat } from "@/components/project-chat";
 import { StatusBadge } from "@/components/status-select";
-import { alignmentBg, severityStyles } from "@/lib/utils";
+import { alignmentBg, checklistDetailStyles, checklistStatusStyles, cn, severityStyles } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -133,10 +133,14 @@ export function CommandCenter({
   return (
     <div className="min-w-0 space-y-6">
       {/* Hero */}
-      <Card className="overflow-hidden border-indigo-200 bg-gradient-to-br from-indigo-50 via-white to-violet-50">
-        <CardBody className="flex flex-wrap items-center justify-between gap-4 py-6">
+      <Card className="relative overflow-hidden border border-[var(--border)] bg-[var(--surface)]">
+        <div
+          className="pointer-events-none absolute inset-0 bg-gradient-to-br from-indigo-500/[0.06] via-transparent to-violet-500/[0.04]"
+          aria-hidden
+        />
+        <CardBody className="relative flex flex-wrap items-center justify-between gap-4 py-6">
           <div>
-            <div className="flex items-center gap-2 text-indigo-600">
+            <div className="flex items-center gap-2 text-indigo-600 dark:text-indigo-400">
               <Sparkles className="h-5 w-5" />
               <span className="text-sm font-semibold uppercase tracking-wide">
                 AI Command Center
@@ -154,7 +158,7 @@ export function CommandCenter({
             loading={loading === "magic"}
             disabled={!hasTickets}
             onClick={runMagic}
-            className="bg-indigo-600 hover:bg-indigo-700"
+            className="bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-500 dark:hover:bg-indigo-600"
           >
             <Wand2 className="h-4 w-4" />
             {loading === "magic" ? "Analyzing… (1–2 min)" : "Run Magic ✨"}
@@ -163,7 +167,7 @@ export function CommandCenter({
       </Card>
 
       {!hasTickets && (
-        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+        <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
           Generate a spec and tickets first to unlock AI features.
         </p>
       )}
@@ -268,11 +272,11 @@ export function CommandCenter({
                     {standup.blockers.map((b) => (
                       <div
                         key={b.title + b.description}
-                        className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm break-words"
+                        className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm break-words dark:border-amber-900/50 dark:bg-amber-950/40"
                       >
-                        <strong className="text-amber-900">{b.title}</strong>
+                        <strong className="text-amber-900 dark:text-amber-100">{b.title}</strong>
                         {b.description && b.description.toLowerCase() !== b.title.toLowerCase() && (
-                          <p className="mt-1 text-amber-800">{b.description}</p>
+                          <p className="mt-1 text-amber-800 dark:text-amber-200/90">{b.description}</p>
                         )}
                       </div>
                     ))}
@@ -295,7 +299,7 @@ export function CommandCenter({
           <CardHeader title="Sprint plan" description={sprint.summary} />
           <CardBody className="space-y-4">
             {sprint.warnings.length > 0 && (
-              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">
+              <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">
                 {sprint.warnings.map((w) => (
                   <p key={w}>⚠ {w}</p>
                 ))}
@@ -309,7 +313,7 @@ export function CommandCenter({
                 >
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold theme-heading">{s.name}</h3>
-                    <Badge className="bg-indigo-100 text-indigo-700">
+                    <Badge className="bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
                       {s.total_points} pts
                     </Badge>
                   </div>
@@ -340,22 +344,21 @@ export function CommandCenter({
               </Badge>
             }
           />
-          <CardBody className="space-y-4">
-            <p className="text-sm text-[var(--muted)]">{ready.summary}</p>
-            <div className="grid gap-2 sm:grid-cols-2">
+          <CardBody className="space-y-5">
+            <p className="text-[15px] leading-relaxed theme-body">{ready.summary}</p>
+            <div className="grid gap-3 sm:grid-cols-2">
               {ready.checklist.map((item) => (
                 <div
                   key={item.label}
-                  className={`rounded-lg border px-3 py-2 text-sm ${
-                    item.status === "pass"
-                      ? "border-emerald-200 bg-emerald-50"
-                      : item.status === "warn"
-                        ? "border-amber-200 bg-amber-50"
-                        : "border-red-200 bg-red-50"
-                  }`}
+                  className={cn(
+                    "rounded-xl border px-4 py-3.5",
+                    checklistStatusStyles(item.status),
+                  )}
                 >
-                  <strong>{item.label}</strong>
-                  <p className="text-[var(--muted)]">{item.detail}</p>
+                  <strong className="block text-sm font-semibold leading-snug">{item.label}</strong>
+                  <p className={cn("mt-2 text-sm leading-relaxed", checklistDetailStyles(item.status))}>
+                    {item.detail}
+                  </p>
                 </div>
               ))}
             </div>
@@ -472,11 +475,11 @@ function ScoreCard({
               {label}
             </p>
             <p
-              className={`mt-1 text-3xl font-bold ${
+              className={`mt-1 text-3xl font-bold tabular-nums ${
                 score !== null && score >= 80
-                  ? "text-emerald-600"
+                  ? "text-emerald-600 dark:text-emerald-400"
                   : score !== null && score >= 50
-                    ? "text-amber-600"
+                    ? "text-amber-600 dark:text-amber-400"
                     : "theme-heading"
               }`}
             >
@@ -526,7 +529,7 @@ function CopyBlock({
         <button
           type="button"
           onClick={() => onCopy(text)}
-          className="flex shrink-0 items-center gap-1 text-xs text-indigo-600 hover:underline"
+          className="flex shrink-0 items-center gap-1 text-xs text-indigo-600 hover:underline dark:text-indigo-400"
         >
           <Copy className="h-3 w-3" /> Copy
         </button>
@@ -563,7 +566,9 @@ function TagSection({
           <span
             key={item}
             className={`max-w-full break-words rounded-full px-3 py-1 text-xs ${
-              color === "emerald" ? "bg-emerald-100 text-emerald-800" : ""
+              color === "emerald"
+                ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300"
+                : ""
             }`}
           >
             {item}

@@ -101,20 +101,22 @@ export function SidebarProjectPanel({
   const commitLinks = insights?.commit_links;
 
   return (
-    <div className="space-y-4 px-3 py-3">
+    <div className="space-y-5 px-3 pb-4">
       <Link
         href="/"
         className="inline-flex items-center gap-1.5 text-xs text-[var(--sidebar-muted)] transition-colors hover:text-white"
       >
-        <ArrowLeft className="h-3 w-3" />
+        <ArrowLeft className="h-3.5 w-3.5" />
         All projects
       </Link>
 
       {project ? (
         <>
           <div>
-            <p className="truncate text-sm font-semibold text-white">{project.name}</p>
-            <p className="mt-0.5 truncate text-[11px] text-[var(--sidebar-muted)]">
+            <p className="truncate text-[15px] font-semibold tracking-tight text-white">
+              {project.name}
+            </p>
+            <p className="mt-1 truncate text-xs leading-relaxed text-[var(--sidebar-muted)]">
               {project.repo_branch}
               {project.repo_url || project.local_repo_path ? " · repo linked" : " · no repo"}
             </p>
@@ -158,9 +160,9 @@ export function SidebarProjectPanel({
           </div>
 
           {commitLinks && commitLinks.links.length > 0 && (
-            <div className="rounded-lg bg-white/[0.04] px-2.5 py-2">
-              <p className="text-[10px] text-[var(--sidebar-muted)]">Commit links</p>
-              <p className="text-[11px] text-slate-200">
+            <div className="rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-2.5">
+              <p className="sidebar-label">Commit links</p>
+              <p className="mt-1 text-xs leading-relaxed text-slate-200">
                 {commitLinks.links.length} ticket
                 {commitLinks.links.length !== 1 ? "s" : ""} matched
                 {commitLinks.unlinked_commits.length > 0 &&
@@ -170,12 +172,10 @@ export function SidebarProjectPanel({
           )}
 
           {breakdown && breakdown.total > 0 && (
-            <div className="space-y-2">
-              <div className="flex items-center justify-between text-[10px]">
-                <span className="font-semibold uppercase tracking-wider text-[var(--sidebar-muted)]">
-                  Tickets
-                </span>
-                <span className="text-[var(--sidebar-muted)]">
+            <div className="space-y-2.5">
+              <div className="flex items-center justify-between gap-2">
+                <span className="sidebar-label">Tickets</span>
+                <span className="text-xs text-[var(--sidebar-muted)]">
                   {breakdown.counts.done}/{breakdown.total} done
                   {breakdown.points > 0 && ` · ${breakdown.donePoints}/${breakdown.points} pts`}
                 </span>
@@ -204,10 +204,8 @@ export function SidebarProjectPanel({
         <p className="text-xs text-[var(--sidebar-muted)]">Loading project…</p>
       )}
 
-      <nav className="border-t border-white/10 pt-3">
-        <p className="px-1 pb-2 text-[10px] font-semibold uppercase tracking-wider text-[var(--sidebar-muted)]">
-          Navigate
-        </p>
+      <nav className="border-t border-white/10 pt-4">
+        <p className="sidebar-label px-1 pb-2.5">Navigate</p>
         <ul className="space-y-0.5">
           {PROJECT_TABS.map(({ id, label, icon: Icon }) => {
             const active = activeTab === id || (!activeTab && id === "overview");
@@ -219,7 +217,7 @@ export function SidebarProjectPanel({
                 <Link
                   href={href}
                   className={cn(
-                    "flex items-center gap-2.5 rounded-lg px-2.5 py-2 text-sm font-medium transition-colors",
+                    "flex items-center gap-2.5 rounded-lg px-2.5 py-2.5 text-[13px] font-medium transition-colors",
                     active
                       ? "bg-white/10 text-white"
                       : "text-[var(--sidebar-muted)] hover:bg-white/5 hover:text-white",
@@ -239,7 +237,7 @@ export function SidebarProjectPanel({
         </ul>
       </nav>
 
-      <div className="border-t border-white/10 pt-3">
+      <div className="border-t border-white/10 pt-4">
         <SidebarActivity projectId={projectId} />
       </div>
     </div>
@@ -256,11 +254,11 @@ function MetricPill({
   tone?: "good" | "warn" | "neutral";
 }) {
   return (
-    <div className="rounded-lg bg-white/[0.04] px-2.5 py-2">
-      <p className="text-[10px] text-[var(--sidebar-muted)]">{label}</p>
+    <div className="rounded-xl border border-white/[0.06] bg-white/[0.04] px-3 py-2.5">
+      <p className="text-xs text-[var(--sidebar-muted)]">{label}</p>
       <p
         className={cn(
-          "mt-0.5 text-sm font-semibold tabular-nums",
+          "mt-1 text-[15px] font-semibold tabular-nums tracking-tight",
           tone === "good" && "text-emerald-300",
           tone === "warn" && "text-amber-300",
           tone === "neutral" && "text-slate-100",

@@ -263,9 +263,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <div className="flex flex-wrap items-center gap-3">
-            <h1 className="text-2xl font-semibold tracking-tight theme-heading">
-              {project.name}
-            </h1>
+            <h1 className="page-title">{project.name}</h1>
             {project.alignment_score !== null && (
               <Badge className={alignmentBg(project.alignment_score)}>
                 {project.alignment_score}% aligned
@@ -278,7 +276,9 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             )}
           </div>
           {project.description && (
-            <p className="mt-1 text-sm text-[var(--muted)]">{project.description}</p>
+            <p className="mt-2 max-w-2xl text-[15px] leading-relaxed text-[var(--muted)]">
+              {project.description}
+            </p>
           )}
         </div>
 
@@ -310,7 +310,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       </div>
 
       {error && (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+        <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
           {error.length > 400 ? `${error.slice(0, 400)}…` : error}
         </p>
       )}
@@ -320,7 +320,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
           <button
             key={id}
             onClick={() => selectTab(id)}
-            className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition-colors ${
+            className={`flex items-center gap-2 border-b-2 px-4 py-3 text-[13px] font-medium transition-colors ${
               tab === id
                 ? "border-[var(--accent)] text-[var(--accent)]"
                 : "border-transparent text-[var(--muted)] hover:theme-body"

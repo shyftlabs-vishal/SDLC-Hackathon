@@ -42,10 +42,8 @@ export default async function DashboardPage() {
     <div className="animate-fade-in space-y-8">
       <div className="flex items-end justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight theme-heading">
-            Dashboard
-          </h1>
-          <p className="mt-1 text-sm text-[var(--muted)]">
+          <h1 className="page-title">Dashboard</h1>
+          <p className="mt-2 text-[15px] leading-relaxed text-[var(--muted)]">
             Requirements to specs, tickets, git tracking, and drift detection.
           </p>
         </div>

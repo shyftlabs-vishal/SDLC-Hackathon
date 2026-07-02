@@ -31,9 +31,9 @@ export function CardHeader({
   return (
     <div className="flex items-start justify-between border-b border-[var(--border)] px-6 py-4">
       <div>
-        <h2 className="text-base font-semibold theme-heading">{title}</h2>
+        <h2 className="text-[15px] font-semibold tracking-tight theme-heading">{title}</h2>
         {description && (
-          <p className="mt-0.5 text-sm text-[var(--muted)]">{description}</p>
+          <p className="mt-1 text-sm leading-relaxed text-[var(--muted)]">{description}</p>
         )}
       </div>
       {action}

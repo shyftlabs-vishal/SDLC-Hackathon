@@ -91,18 +91,40 @@ export function alignmentBg(score: number | null): string {
   return "border border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/50 dark:text-red-300";
 }
 
+export function checklistStatusStyles(status: string): string {
+  switch (status) {
+    case "pass":
+      return "border-emerald-200 bg-emerald-50 text-emerald-950 dark:border-emerald-800/80 dark:bg-emerald-950/45 dark:text-emerald-100";
+    case "warn":
+      return "border-amber-200 bg-amber-50 text-amber-950 dark:border-amber-800/80 dark:bg-amber-950/45 dark:text-amber-100";
+    default:
+      return "border-red-200 bg-red-50 text-red-950 dark:border-red-800/80 dark:bg-red-950/45 dark:text-red-100";
+  }
+}
+
+export function checklistDetailStyles(status: string): string {
+  switch (status) {
+    case "pass":
+      return "text-emerald-800 dark:text-emerald-200/85";
+    case "warn":
+      return "text-amber-800 dark:text-amber-200/85";
+    default:
+      return "text-red-800 dark:text-red-200/85";
+  }
+}
+
 export function severityStyles(severity: string): string {
   switch (severity) {
     case "critical":
-      return "bg-red-100 text-red-800 border-red-200";
+      return "bg-red-100 text-red-800 border-red-200 dark:bg-red-950/50 dark:text-red-300 dark:border-red-800";
     case "high":
-      return "bg-orange-100 text-orange-800 border-orange-200";
+      return "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-950/50 dark:text-orange-300 dark:border-orange-800";
     case "medium":
-      return "bg-amber-100 text-amber-800 border-amber-200";
+      return "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-800";
     case "low":
-      return "bg-blue-100 text-blue-800 border-blue-200";
+      return "bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-800";
     default:
-      return "bg-slate-100 text-slate-700 border-slate-200";
+      return "bg-slate-100 text-slate-700 border-slate-200 dark:bg-zinc-800 dark:text-zinc-300 dark:border-zinc-700";
   }
 }
 
