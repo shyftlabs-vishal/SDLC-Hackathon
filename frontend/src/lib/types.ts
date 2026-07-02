@@ -289,3 +289,10 @@ export interface GitBranchesResponse {
   current_branch: string;
   default_branch: string | null;
 }
+
+export interface DocumentExtractResponse {
+  text: string;
+  filename: string;
+  char_count: number;
+  truncated: boolean;
+}

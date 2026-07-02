@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(ROOT))
 
 from dotenv import load_dotenv
+from document_parser import DocumentParseError, extract_text_from_bytes
 
 load_dotenv(ROOT / ".env")
 
@@ -50,7 +51,7 @@ from agents import (
     format_tickets_for_drift,
     map_llm_error,
 )
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, File, HTTPException, UploadFile
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from git_service import (
@@ -91,6 +92,7 @@ from schemas import (
     CommitLinkResponse,
     CommitLinkResult,
     DriftCheckResponse,
+    DocumentExtractResponse,
     GitBranchesResponse,
     GitSyncRequest,
     GitSyncResponse,
@@ -281,6 +283,24 @@ async def remove_project(project_id: str) -> None:
         delete_project(project_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.post("/api/documents/extract-text", response_model=DocumentExtractResponse)
+async def extract_document_text(file: UploadFile = File(...)) -> DocumentExtractResponse:
+    """Parse an uploaded document and return extracted text only (file is not stored)."""
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided.")
+
+    data = await file.read()
+    try:
+        result = extract_text_from_bytes(
+            data,
+            file.filename,
+            content_type=file.content_type,
+        )
+        return DocumentExtractResponse(**result)
+    except DocumentParseError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
 
 
 @app.post("/api/projects/{project_id}/analyze", response_model=AnalyzeResponse)

@@ -246,7 +246,7 @@ export function CommandPalette({
                     className={cn(
                       "flex w-full items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors",
                       index === activeIndex
-                        ? "bg-indigo-50 text-indigo-900"
+                        ? "bg-indigo-50 text-indigo-900 dark:bg-indigo-950/50 dark:text-indigo-200"
                         : "theme-body hover:bg-[var(--hover)]",
                     )}
                   >

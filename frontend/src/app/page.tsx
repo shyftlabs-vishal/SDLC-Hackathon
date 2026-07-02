@@ -78,7 +78,7 @@ export default async function DashboardPage() {
                 not
                 configured.
               </strong>{" "}
-              Set <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-xs">
+              Set <code className="rounded bg-amber-100 px-1.5 py-0.5 font-mono text-xs dark:bg-amber-900/50 dark:text-amber-100">
                 LLM_PROVIDER={health.llm_provider}
               </code>{" "}
               and add the matching key to{" "}
@@ -128,8 +128,8 @@ export default async function DashboardPage() {
         {projects.length === 0 ? (
           <Card>
             <CardBody className="flex flex-col items-center py-16 text-center">
-              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-blue-50">
-                <Sparkles className="h-7 w-7 text-blue-600" />
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-indigo-50 dark:bg-indigo-950/40">
+                <Sparkles className="h-7 w-7 text-indigo-600 dark:text-indigo-400" />
               </div>
               <h3 className="text-lg font-medium theme-heading">No projects yet</h3>
               <p className="mt-2 max-w-md text-sm text-[var(--muted)]">
@@ -158,7 +158,7 @@ export default async function DashboardPage() {
                           </Badge>
                         )}
                         {project.open_drift_count > 0 && (
-                          <Badge className="bg-amber-100 text-amber-800 border-amber-200">
+                          <Badge className="border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
                             {project.open_drift_count} drift
                           </Badge>
                         )}

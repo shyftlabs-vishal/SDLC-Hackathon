@@ -5,6 +5,7 @@ import { useState } from "react";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { api } from "@/lib/api";
+import { RequirementEditor } from "@/components/requirement-editor";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
@@ -89,13 +90,15 @@ export default function NewProjectPage() {
         <Card>
           <CardHeader
             title="Requirement"
-            description="Paste your product or engineering requirement. AI generates spec + tickets on create."
+            description="Type your requirement or upload a PDF/DOCX document. AI generates spec + tickets on create."
           />
           <CardBody>
-            <textarea
-              className="input min-h-[180px] resize-y font-mono text-sm leading-relaxed"
+            <RequirementEditor
               value={requirement}
-              onChange={(e) => setRequirement(e.target.value)}
+              onChange={setRequirement}
+              onError={setError}
+              disabled={loading}
+              minHeight="180px"
               placeholder={`Example:\n\nBuild a user authentication system with email/password signup, OAuth (Google), JWT sessions, password reset flow, and rate limiting on login attempts. Must support 10k concurrent users.`}
             />
           </CardBody>

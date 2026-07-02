@@ -131,13 +131,13 @@ export function severityStyles(severity: string): string {
 export function priorityStyles(priority: string): string {
   switch (priority) {
     case "critical":
-      return "bg-red-100 text-red-700";
+      return "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300";
     case "high":
-      return "bg-orange-100 text-orange-700";
+      return "bg-orange-100 text-orange-700 dark:bg-orange-950/50 dark:text-orange-300";
     case "medium":
-      return "bg-amber-100 text-amber-700";
+      return "bg-amber-100 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300";
     default:
-      return "bg-slate-100 text-slate-600";
+      return "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300";
   }
 }
 
@@ -148,12 +148,12 @@ export function statusStyles(status: string): string {
 export function typeStyles(type: string): string {
   switch (type) {
     case "feature":
-      return "bg-indigo-100 text-indigo-700";
+      return "bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300";
     case "bug":
-      return "bg-red-100 text-red-700";
+      return "bg-red-100 text-red-700 dark:bg-red-950/50 dark:text-red-300";
     case "spike":
-      return "bg-purple-100 text-purple-700";
+      return "bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300";
     default:
-      return "bg-slate-100 text-slate-600";
+      return "bg-slate-100 text-slate-600 dark:bg-zinc-800 dark:text-zinc-300";
   }
 }

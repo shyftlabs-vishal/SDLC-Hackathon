@@ -305,6 +305,13 @@ class RequirementInput(BaseModel):
     requirement: str = Field(min_length=10, max_length=50000)
 
 
+class DocumentExtractResponse(BaseModel):
+    text: str
+    filename: str
+    char_count: int
+    truncated: bool = False
+
+
 class TicketUpdate(BaseModel):
     status: TicketStatus | None = None
     priority: TicketPriority | None = None

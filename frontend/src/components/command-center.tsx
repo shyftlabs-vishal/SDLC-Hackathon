@@ -424,7 +424,7 @@ export function CommandCenter({
               >
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="font-medium theme-heading">{link.ticket_title}</span>
-                  <Badge className="bg-blue-100 text-blue-700">
+                  <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300">
                     {Math.round(link.confidence * 100)}% match
                   </Badge>
                   {link.suggested_status && (

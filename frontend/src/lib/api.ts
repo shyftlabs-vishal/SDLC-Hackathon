@@ -14,6 +14,7 @@ import type {
   JiraStatusResponse,
   JiraSyncResponse,
   MagicRunResponse,
+  DocumentExtractResponse,
   ProjectActivityResponse,
   ProjectChatResult,
   ProjectDetail,
@@ -94,6 +95,27 @@ export const api = {
 
   deleteProject: (id: string) =>
     request<void>(`/api/projects/${id}`, { method: "DELETE" }),
+
+  extractDocumentText: async (file: File) => {
+    const form = new FormData();
+    form.append("file", file);
+    const res = await fetch(`${API_BASE}/api/documents/extract-text`, {
+      method: "POST",
+      body: form,
+      cache: "no-store",
+    });
+    if (!res.ok) {
+      let detail = `Upload failed (${res.status})`;
+      try {
+        const body = await res.json();
+        detail = body.detail ?? detail;
+      } catch {
+        /* ignore */
+      }
+      throw new Error(detail);
+    }
+    return res.json() as Promise<DocumentExtractResponse>;
+  },
 
   analyzeRequirement: (projectId: string, requirement: string) =>
     request<AnalyzeResponse>(`/api/projects/${projectId}/analyze`, {

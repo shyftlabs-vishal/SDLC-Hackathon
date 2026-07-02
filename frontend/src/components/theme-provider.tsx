@@ -6,6 +6,7 @@ import { applyTheme, resolveTheme, THEME_STORAGE_KEY, type Theme } from "@/lib/t
 type ThemeContextValue = {
   theme: Theme;
   resolvedTheme: "light" | "dark";
+  mounted: boolean;
   setTheme: (theme: Theme) => void;
   toggleTheme: () => void;
 };
@@ -24,12 +25,14 @@ function readStoredTheme(): Theme {
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setThemeState] = useState<Theme>("system");
   const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     const stored = readStoredTheme();
     setThemeState(stored);
     applyTheme(stored);
     setResolvedTheme(resolveTheme(stored));
+    setMounted(true);
   }, []);
 
   useEffect(() => {
@@ -55,8 +58,8 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   }, [resolvedTheme, setTheme]);
 
   const value = useMemo(
-    () => ({ theme, resolvedTheme, setTheme, toggleTheme }),
-    [theme, resolvedTheme, setTheme, toggleTheme],
+    () => ({ theme, resolvedTheme, mounted, setTheme, toggleTheme }),
+    [theme, resolvedTheme, mounted, setTheme, toggleTheme],
   );
 
   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;

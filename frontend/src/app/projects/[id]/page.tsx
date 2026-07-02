@@ -18,6 +18,7 @@ import {
 import { CommandCenter } from "@/components/command-center";
 import { OverviewAIBrief } from "@/components/overview-ai-brief";
 import { ProjectChat } from "@/components/project-chat";
+import { RequirementEditor } from "@/components/requirement-editor";
 import { api } from "@/lib/api";
 import { dispatchProjectRefresh, onProjectRefresh } from "@/lib/refresh-events";
 import type { DriftCheckResponse, ProjectDetail, TicketStatus } from "@/lib/types";
@@ -270,7 +271,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               </Badge>
             )}
             {openDrifts.length > 0 && (
-              <Badge className="bg-amber-100 text-amber-800 border-amber-200">
+              <Badge className="border-amber-200 bg-amber-100 text-amber-800 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300">
                 {openDrifts.length} drift alert{openDrifts.length !== 1 ? "s" : ""}
               </Badge>
             )}
@@ -352,10 +353,11 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             <Card>
               <CardHeader title="Requirement" />
               <CardBody className="space-y-4">
-                <textarea
-                  className="theme-input w-full min-h-[160px] resize-y rounded-lg border p-3 font-mono text-sm"
+                <RequirementEditor
                   value={requirement}
-                  onChange={(e) => setRequirement(e.target.value)}
+                  onChange={setRequirement}
+                  onError={setError}
+                  disabled={actionLoading === "analyze"}
                   placeholder="Paste or edit your requirement..."
                 />
                 <Button
@@ -467,7 +469,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                             href={ticket.jira_url}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-200"
+                            className="rounded bg-blue-100 px-2 py-0.5 text-xs font-medium text-blue-700 hover:bg-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:hover:bg-blue-900/60"
                           >
                             {ticket.jira_issue_key}
                           </a>
@@ -612,7 +614,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       {tab === "drift" && (
         <div className="space-y-6">
           {driftResult && (
-            <Card className="border-blue-200 bg-blue-50/50">
+            <Card className="border-[var(--info-border)] bg-[var(--info-surface)]">
               <CardBody>
                 <div className="flex items-start gap-4">
                   <div
@@ -621,8 +623,8 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                     {driftResult.alignment_score}%
                   </div>
                   <div>
-                    <p className="font-medium theme-heading">Latest drift analysis</p>
-                    <p className="mt-1 text-sm text-[var(--muted)]">{driftResult.summary}</p>
+                    <p className="font-semibold theme-heading">Latest drift analysis</p>
+                    <p className="mt-1 text-sm leading-relaxed theme-body">{driftResult.summary}</p>
                   </div>
                 </div>
                 {(driftResult.covered_requirements.length > 0 ||
