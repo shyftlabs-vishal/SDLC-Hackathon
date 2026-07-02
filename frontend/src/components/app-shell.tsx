@@ -154,9 +154,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 
           <div className="space-y-3 border-t border-[var(--sidebar-border)] p-4 pb-6">
             <SidebarHealth />
-            <p className="text-center text-[11px] text-[var(--sidebar-muted)]">
-              Powered by Continuum
-            </p>
+            <div className="rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-center">
+              <p className="text-xs font-medium text-[var(--sidebar-muted)]">Built with</p>
+              <p className="mt-0.5 text-sm font-semibold tracking-tight text-white">
+                Continuum
+              </p>
+            </div>
           </div>
         </div>
       </aside>
