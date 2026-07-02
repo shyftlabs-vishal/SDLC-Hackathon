@@ -1,16 +1,51 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
-  --background: #fafafa;
+  --background: #f8fafc;
   --foreground: #0f172a;
   --surface: #ffffff;
+  --surface-muted: #f1f5f9;
+  --surface-elevated: #ffffff;
   --border: #e2e8f0;
   --muted: #64748b;
+  --heading: #0f172a;
+  --body: #334155;
+  --input-bg: #ffffff;
+  --hover: #f8fafc;
   --accent: #2563eb;
   --accent-hover: #1d4ed8;
+  --ring: rgba(37, 99, 235, 0.15);
   --sidebar: #0f172a;
   --sidebar-fg: #f8fafc;
   --sidebar-muted: #94a3b8;
+  --shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+  --selection-bg: #dbeafe;
+  --selection-fg: #1e3a8a;
+}
+
+.dark {
+  --background: #09090b;
+  --foreground: #f4f4f5;
+  --surface: #18181b;
+  --surface-muted: #27272a;
+  --surface-elevated: #1f1f23;
+  --border: #3f3f46;
+  --muted: #a1a1aa;
+  --heading: #fafafa;
+  --body: #d4d4d8;
+  --input-bg: #27272a;
+  --hover: #27272a;
+  --accent: #3b82f6;
+  --accent-hover: #60a5fa;
+  --ring: rgba(59, 130, 246, 0.25);
+  --sidebar: #0a0a0c;
+  --sidebar-fg: #fafafa;
+  --sidebar-muted: #71717a;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  --selection-bg: #1e3a8a;
+  --selection-fg: #dbeafe;
 }
 
 @theme inline {
@@ -28,11 +63,20 @@
   box-sizing: border-box;
 }
 
+html {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
   font-family: var(--font-geist-sans), system-ui, sans-serif;
   overflow-x: hidden;
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 .text-readable {
@@ -41,9 +85,41 @@ body {
   max-width: 100%;
 }
 
+.theme-heading {
+  color: var(--heading);
+}
+
+.theme-body {
+  color: var(--body);
+}
+
+.theme-muted {
+  color: var(--muted);
+}
+
+.theme-surface {
+  background-color: var(--surface);
+}
+
+.theme-surface-muted {
+  background-color: var(--surface-muted);
+}
+
+.theme-input {
+  background-color: var(--input-bg);
+  border-color: var(--border);
+  color: var(--foreground);
+}
+
+.theme-input:focus {
+  border-color: var(--accent);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--ring);
+}
+
 ::selection {
-  background: #dbeafe;
-  color: #1e3a8a;
+  background: var(--selection-bg);
+  color: var(--selection-fg);
 }
 
 @keyframes fade-in {

@@ -66,7 +66,7 @@ export function StatusSelect({
         />
       </button>
       {open && (
-        <div className="absolute right-0 z-50 mt-1.5 min-w-[200px] rounded-lg border border-[var(--border)] bg-white p-1.5 shadow-lg">
+        <div className="absolute right-0 z-50 mt-1.5 min-w-[200px] rounded-lg border border-[var(--border)] bg-[var(--surface)] p-1.5 shadow-lg">
           {TICKET_STATUSES.map((status) => (
             <button
               key={status}
@@ -75,10 +75,10 @@ export function StatusSelect({
                 onChange(status);
                 setOpen(false);
               }}
-              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-slate-50"
+              className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left hover:bg-[var(--hover)]"
             >
               {value === status ? (
-                <Check className="h-3.5 w-3.5 shrink-0 text-slate-600" />
+                <Check className="h-3.5 w-3.5 shrink-0 text-[var(--muted)]" />
               ) : (
                 <span className="w-3.5 shrink-0" />
               )}

@@ -72,17 +72,23 @@ export function formatRelative(iso: string): string {
 }
 
 export function alignmentColor(score: number | null): string {
-  if (score === null) return "text-muted";
-  if (score >= 80) return "text-emerald-600";
-  if (score >= 60) return "text-amber-600";
-  return "text-red-600";
+  if (score === null) return "text-[var(--muted)]";
+  if (score >= 80) return "text-emerald-600 dark:text-emerald-400";
+  if (score >= 60) return "text-amber-600 dark:text-amber-400";
+  return "text-red-600 dark:text-red-400";
 }
 
 export function alignmentBg(score: number | null): string {
-  if (score === null) return "bg-muted/20";
-  if (score >= 80) return "bg-emerald-50 text-emerald-700 border-emerald-200";
-  if (score >= 60) return "bg-amber-50 text-amber-700 border-amber-200";
-  return "bg-red-50 text-red-700 border-red-200";
+  if (score === null) {
+    return "border border-[var(--border)] bg-[var(--surface-muted)] text-[var(--muted)]";
+  }
+  if (score >= 80) {
+    return "border border-emerald-200 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/50 dark:text-emerald-300";
+  }
+  if (score >= 60) {
+    return "border border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/50 dark:text-amber-300";
+  }
+  return "border border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950/50 dark:text-red-300";
 }
 
 export function severityStyles(severity: string): string {

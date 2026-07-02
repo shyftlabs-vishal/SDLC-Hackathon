@@ -48,14 +48,14 @@ export default function NewProjectPage() {
     <div className="animate-fade-in mx-auto max-w-3xl space-y-6">
       <Link
         href="/"
-        className="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:text-slate-900"
+        className="inline-flex items-center gap-2 text-sm text-[var(--muted)] hover:theme-heading"
       >
         <ArrowLeft className="h-4 w-4" />
         Back to dashboard
       </Link>
 
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+        <h1 className="text-2xl font-semibold tracking-tight theme-heading">
           New Project
         </h1>
         <p className="mt-1 text-sm text-[var(--muted)]">
@@ -137,7 +137,7 @@ export default function NewProjectPage() {
         </Card>
 
         {error && (
-          <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700 dark:border-red-900/50 dark:bg-red-950/30 dark:text-red-300">
             {error}
           </p>
         )}
@@ -159,15 +159,16 @@ export default function NewProjectPage() {
           width: 100%;
           border-radius: 0.5rem;
           border: 1px solid var(--border);
-          background: white;
+          background: var(--input-bg);
+          color: var(--foreground);
           padding: 0.625rem 0.875rem;
           font-size: 0.875rem;
           outline: none;
-          transition: border-color 0.15s, box-shadow 0.15s;
+          transition: border-color 0.15s, box-shadow 0.15s, background-color 0.15s;
         }
         .input:focus {
           border-color: var(--accent);
-          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+          box-shadow: 0 0 0 3px var(--ring);
         }
       `}</style>
     </div>
@@ -185,7 +186,7 @@ function Field({
 }) {
   return (
     <label className="block space-y-1.5">
-      <span className="text-sm font-medium text-slate-700">
+      <span className="text-sm font-medium theme-body">
         {label}
         {required && <span className="text-red-500"> *</span>}
       </span>

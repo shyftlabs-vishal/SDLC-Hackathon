@@ -61,8 +61,8 @@ export function TicketNudge({
           Nudge via JIRA
         </button>
       ) : (
-        <div className="space-y-2 rounded-lg border border-[var(--border)] bg-slate-50/80 p-3">
-          <div className="flex items-center gap-2 text-xs font-medium text-slate-700">
+        <div className="space-y-2 rounded-lg border border-[var(--border)] bg-[var(--surface-muted)] p-3">
+          <div className="flex items-center gap-2 text-xs font-medium theme-body">
             <Mail className="h-3.5 w-3.5" />
             Send a JIRA nudge — posts an @mention comment and emails them
           </div>
@@ -71,7 +71,7 @@ export function TicketNudge({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="Recipient Atlassian email"
-            className="w-full rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-sm outline-none focus:border-blue-400"
+            className="theme-input w-full rounded-lg border px-3 py-2 text-sm"
           />
           {ticket.assignee && ticket.jira_assignee_account_id && (
             <button
@@ -88,7 +88,7 @@ export function TicketNudge({
             onChange={(e) => setMessage(e.target.value)}
             rows={3}
             placeholder="Your message (e.g. Can you review this today?)"
-            className="w-full resize-y rounded-lg border border-[var(--border)] bg-white px-3 py-2 text-sm outline-none focus:border-blue-400"
+            className="theme-input w-full resize-y rounded-lg border px-3 py-2 text-sm"
           />
           <div className="flex flex-wrap gap-2">
             <Button
