@@ -846,7 +846,7 @@ def _derived_activity_events(project_id: str, limit: int = 12) -> list[dict[str,
     with _conn() as db:
         insight_rows = db.execute(
             """
-            SELECT insight_type, created_at FROM ai_insights
+            SELECT id, insight_type, created_at FROM ai_insights
             WHERE project_id = ?
             ORDER BY created_at DESC LIMIT ?
             """,
@@ -856,7 +856,7 @@ def _derived_activity_events(project_id: str, limit: int = 12) -> list[dict[str,
             label = _INSIGHT_ACTIVITY_LABELS.get(row["insight_type"], row["insight_type"])
             events.append(
                 {
-                    "id": f"insight-{row['insight_type']}-{row['created_at']}",
+                    "id": f"insight-{row['id']}",
                     "event_type": row["insight_type"],
                     "message": label,
                     "created_at": row["created_at"],
@@ -865,7 +865,7 @@ def _derived_activity_events(project_id: str, limit: int = 12) -> list[dict[str,
 
         drift_rows = db.execute(
             """
-            SELECT title, created_at FROM drift_alerts
+            SELECT id, title, created_at FROM drift_alerts
             WHERE project_id = ?
             ORDER BY created_at DESC LIMIT 5
             """,
@@ -874,7 +874,7 @@ def _derived_activity_events(project_id: str, limit: int = 12) -> list[dict[str,
         for row in drift_rows:
             events.append(
                 {
-                    "id": f"drift-{row['created_at']}",
+                    "id": f"drift-{row['id']}",
                     "event_type": "drift_alert",
                     "message": f"Drift alert: {row['title']}",
                     "created_at": row["created_at"],
@@ -922,12 +922,11 @@ def list_project_activity(project_id: str, limit: int = 15) -> list[dict[str, An
     ]
 
     if len(events) < limit:
-        seen = {f"{e['created_at']}|{e['message']}" for e in events}
+        seen = {e["id"] for e in events}
         for derived in _derived_activity_events(project_id, limit=limit):
-            key = f"{derived['created_at']}|{derived['message']}"
-            if key not in seen:
+            if derived["id"] not in seen:
                 events.append(derived)
-                seen.add(key)
+                seen.add(derived["id"])
 
     events.sort(key=lambda e: e["created_at"], reverse=True)
     return events[:limit]
