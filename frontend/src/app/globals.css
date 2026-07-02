@@ -3,7 +3,7 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 :root {
-  --background: #f6f7f9;
+  --background: #eef1f6;
   --foreground: #0f172a;
   --surface: #ffffff;
   --surface-muted: #f1f3f5;
@@ -24,7 +24,8 @@
   --sidebar-muted: #94a3b8;
   --sidebar-border: rgba(255, 255, 255, 0.08);
   --shadow: 0 1px 2px rgba(15, 23, 42, 0.06), 0 1px 3px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 12px rgba(15, 23, 42, 0.08);
+  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.09), 0 2px 6px rgba(15, 23, 42, 0.05);
+  --shadow-lg: 0 12px 32px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(15, 23, 42, 0.06);
   --selection-bg: #e0e7ff;
   --selection-fg: #312e81;
 
@@ -66,6 +67,7 @@
   --sidebar-border: rgba(255, 255, 255, 0.1);
   --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
   --shadow-md: 0 6px 20px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 16px 40px rgba(0, 0, 0, 0.6);
   --selection-bg: #3730a3;
   --selection-fg: #e0e7ff;
 
@@ -211,6 +213,66 @@ body {
   background-color: var(--surface);
   border: 1px solid var(--border);
   box-shadow: var(--shadow);
+}
+
+/* Elevation helpers */
+.shadow-card {
+  box-shadow: var(--shadow);
+}
+
+.shadow-card-md {
+  box-shadow: var(--shadow-md);
+}
+
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--border-strong);
+}
+
+/* Hero / feature gradients */
+.hero-gradient {
+  background:
+    radial-gradient(1200px 400px at 15% -10%, rgba(129, 140, 248, 0.35), transparent 60%),
+    radial-gradient(900px 400px at 100% 0%, rgba(168, 85, 247, 0.28), transparent 55%),
+    linear-gradient(135deg, #4f46e5 0%, #6d28d9 55%, #7c3aed 100%);
+}
+
+.hero-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+.gradient-text {
+  background: linear-gradient(135deg, var(--accent), #a855f7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.feature-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.feature-glow::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(400px circle at var(--x, 50%) var(--y, 0%), rgba(99, 102, 241, 0.08), transparent 45%);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+
+.feature-glow:hover::before {
+  opacity: 1;
 }
 
 .sidebar-muted-text {
