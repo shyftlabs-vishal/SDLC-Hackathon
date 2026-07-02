@@ -20,6 +20,39 @@ from ai_normalizer import try_normalize_ai_output
 from response_normalizer import try_normalize_output
 from schemas import DriftAnalysisResult, RequirementAnalysisResult
 
+
+def _register_context_window_limits() -> None:
+    """Teach continuum the real context window for our gateway model ids.
+
+    continuum's bundled table keys Anthropic models with dots (e.g.
+    "claude-haiku-4.5"), but the Smart Gateway model ids use dashes and a date
+    suffix (e.g. "claude-haiku-4-5-20251001"). Its substring lookup then misses,
+    falls back to a 4096-token window, and aggressively compresses the prompt
+    down to just the system message. Anthropic rejects that ("at least one
+    message is required") and it surfaces to the user as an opaque 500 while the
+    UI is stuck on "Thinking…". Registering dash-variant keys restores the real
+    200k window so prompts are sent intact.
+    """
+    try:
+        from continuum.llm.context_window import (
+            ContextWindowManager,
+            get_context_window_manager,
+        )
+
+        ContextWindowManager.DEFAULT_LIMITS.update(
+            {
+                "claude-haiku-4-5": 200000,
+                "claude-sonnet-4-5": 200000,
+                "claude-opus-4-5": 200000,
+            }
+        )
+        get_context_window_manager().clear_cache()
+    except Exception:
+        pass
+
+
+_register_context_window_limits()
+
 MAX_RATE_LIMIT_RETRIES = 4
 MAGIC_AGENT_DELAY_SEC = 2.5
 
