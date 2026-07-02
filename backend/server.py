@@ -18,13 +18,10 @@ import sys
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
-CONTINUUM_ROOT = ROOT.parent / "continuum-main"
-sys.path.insert(0, str(CONTINUUM_ROOT / "src"))
 sys.path.insert(0, str(ROOT))
 
 from dotenv import load_dotenv
 
-load_dotenv(CONTINUUM_ROOT / ".env")
 load_dotenv(ROOT / ".env")
 
 

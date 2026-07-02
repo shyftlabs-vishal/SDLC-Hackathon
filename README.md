@@ -38,7 +38,6 @@ cp .env.example .env
 # Add your API key to .env (see LLM_PROVIDER below)
 
 pip install -r requirements.txt
-pip install ../../continuum-main
 ./start.sh
 ```
 
