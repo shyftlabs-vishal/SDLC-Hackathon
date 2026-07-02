@@ -11,6 +11,10 @@ import httpx
 
 from schemas import TicketPriority, TicketResponse, TicketStatus, TicketType
 
+
+class JiraIssueNotFoundError(ValueError):
+    """Raised when a JIRA issue key no longer exists."""
+
 ISSUE_TYPE_MAP: dict[TicketType, str] = {
     TicketType.FEATURE: "Story",
     TicketType.BUG: "Bug",
@@ -275,7 +279,7 @@ async def get_issue(site_url: str, issue_key: str) -> dict[str, Any]:
             params={"fields": _ISSUE_FIELDS},
         )
         if resp.status_code == 404:
-            raise ValueError(f"JIRA issue {issue_key} not found")
+            raise JiraIssueNotFoundError(f"JIRA issue {issue_key} not found")
         if resp.status_code >= 400:
             raise RuntimeError(f"JIRA API error ({resp.status_code}): {resp.text[:200]}")
         return resp.json()
@@ -374,9 +378,14 @@ async def push_tickets(
 async def sync_tickets_from_jira(
     site_url: str,
     tickets: list[TicketResponse],
-) -> tuple[list[dict[str, str]], list[str]]:
-    """Pull status, priority, and assignee from JIRA for linked tickets."""
+) -> tuple[list[dict[str, str]], list[str], list[str]]:
+    """Pull status, priority, and assignee from JIRA for linked tickets.
+
+    Returns (updates, deleted_ticket_ids, errors). Tickets whose JIRA issues
+    were removed are included in deleted_ticket_ids.
+    """
     updated: list[dict[str, str]] = []
+    deleted: list[str] = []
     errors: list[str] = []
     for ticket in tickets:
         if not ticket.jira_issue_key:
@@ -402,9 +411,11 @@ async def sync_tickets_from_jira(
                     "local_assignee_account_id": local_account_id,
                 }
             )
+        except JiraIssueNotFoundError:
+            deleted.append(ticket.id)
         except Exception as exc:
             errors.append(f"{ticket.jira_issue_key}: {exc}")
-    return updated, errors
+    return updated, deleted, errors
 
 
 # Backwards-compatible alias

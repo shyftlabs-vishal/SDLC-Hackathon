@@ -126,6 +126,7 @@ from schemas import (
 from store import (
     create_project,
     delete_project,
+    delete_ticket,
     enrich_ticket_fields,
     find_ticket_by_title,
     get_command_center_insights,
@@ -571,7 +572,7 @@ async def jira_sync(project_id: str) -> JiraSyncResponse:
         raise HTTPException(status_code=400, detail="No tickets linked to JIRA yet. Push first.")
 
     try:
-        updates, errors = await jira_sync_tickets(site, linked)
+        updates, deleted_ids, errors = await jira_sync_tickets(site, linked)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
     except RuntimeError as exc:
@@ -604,9 +605,31 @@ async def jira_sync(project_id: str) -> JiraSyncResponse:
             )
             count += 1
 
+    deleted_count = 0
+    for ticket_id in deleted_ids:
+        try:
+            delete_ticket(ticket_id)
+            deleted_count += 1
+        except KeyError:
+            pass
+
     refreshed = get_project_detail(project_id)
-    _activity(project_id, "jira_sync", f"Synced {count} ticket(s) from JIRA (status, priority, assignee)")
-    return JiraSyncResponse(updated=count, errors=errors, tickets=refreshed.tickets)
+    parts = []
+    if count:
+        parts.append(f"synced {count}")
+    if deleted_count:
+        parts.append(f"removed {deleted_count} deleted from JIRA")
+    _activity(
+        project_id,
+        "jira_sync",
+        f"JIRA sync: {', '.join(parts) or 'no changes'}",
+    )
+    return JiraSyncResponse(
+        updated=count,
+        deleted=deleted_count,
+        errors=errors,
+        tickets=refreshed.tickets,
+    )
 
 
 @app.post("/api/projects/{project_id}/jira/import", response_model=JiraImportResponse)

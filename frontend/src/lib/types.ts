@@ -135,6 +135,7 @@ export interface JiraPushResponse {
 
 export interface JiraSyncResponse {
   updated: number;
+  deleted: number;
   errors: string[];
   tickets: Ticket[];
 }

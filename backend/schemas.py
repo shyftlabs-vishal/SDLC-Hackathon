@@ -488,6 +488,7 @@ class JiraPushResponse(BaseModel):
 
 class JiraSyncResponse(BaseModel):
     updated: int
+    deleted: int = 0
     errors: list[str]
     tickets: list[TicketResponse]
 

@@ -30,6 +30,7 @@ export function JiraPanel({
   const [projectKey, setProjectKey] = useState(jiraProjectKey ?? "");
   const [loading, setLoading] = useState<string | null>(null);
   const [enrichOnImport, setEnrichOnImport] = useState(true);
+  const [syncMessage, setSyncMessage] = useState<string | null>(null);
 
   const loadStatus = useCallback(async () => {
     try {
@@ -88,11 +89,16 @@ export function JiraPanel({
   async function syncFromJira() {
     setLoading("sync");
     onError("");
+    setSyncMessage(null);
     try {
       const result = await api.syncFromJira(projectId);
       if (result.errors.length) {
         onError(result.errors.slice(0, 2).join(" · "));
       }
+      const parts: string[] = [];
+      if (result.updated > 0) parts.push(`${result.updated} updated`);
+      if (result.deleted > 0) parts.push(`${result.deleted} removed (deleted in JIRA)`);
+      if (parts.length) setSyncMessage(`Sync complete: ${parts.join(", ")}.`);
       await loadStatus();
       onUpdated();
     } catch (e) {
@@ -175,6 +181,12 @@ export function JiraPanel({
             </Button>
           </div>
         </div>
+
+        {syncMessage && (
+          <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-800 dark:border-emerald-900/50 dark:bg-emerald-950/40 dark:text-emerald-200">
+            {syncMessage}
+          </p>
+        )}
 
         {statusLoaded && !configured && (
           <div className="rounded-lg border border-amber-200 bg-amber-50 px-3 py-2.5 text-xs text-amber-800 dark:border-amber-900/50 dark:bg-amber-950/40 dark:text-amber-200">

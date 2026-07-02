@@ -529,6 +529,14 @@ def get_ticket(ticket_id: str) -> TicketResponse:
     return _row_ticket(row)
 
 
+def delete_ticket(ticket_id: str) -> None:
+    with _conn() as db:
+        row = db.execute("SELECT id FROM tickets WHERE id = ?", (ticket_id,)).fetchone()
+        if row is None:
+            raise KeyError(f"Ticket {ticket_id} not found")
+        db.execute("DELETE FROM tickets WHERE id = ?", (ticket_id,))
+
+
 def list_jira_issue_keys(project_id: str) -> set[str]:
     with _conn() as db:
         rows = db.execute(
