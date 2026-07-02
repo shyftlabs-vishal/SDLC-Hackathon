@@ -5,6 +5,7 @@ import Link from "next/link";
 import { FolderKanban } from "lucide-react";
 import { api } from "@/lib/api";
 import type { ProjectSummary } from "@/lib/types";
+import { onProjectRefresh } from "@/lib/refresh-events";
 import { cn } from "@/lib/utils";
 
 export function SidebarRecentProjects({ activeId }: { activeId?: string }) {
@@ -13,24 +14,32 @@ export function SidebarRecentProjects({ activeId }: { activeId?: string }) {
 
   useEffect(() => {
     let cancelled = false;
-    api
-      .listProjects()
-      .then((list) => {
-        if (!cancelled) {
-          const sorted = [...list].sort(
-            (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
-          );
-          setProjects(sorted.slice(0, 8));
-        }
-      })
-      .catch(() => {
-        if (!cancelled) setProjects([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
+
+    function load() {
+      setLoading(true);
+      api
+        .listProjects()
+        .then((list) => {
+          if (!cancelled) {
+            const sorted = [...list].sort(
+              (a, b) => new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime(),
+            );
+            setProjects(sorted.slice(0, 8));
+          }
+        })
+        .catch(() => {
+          if (!cancelled) setProjects([]);
+        })
+        .finally(() => {
+          if (!cancelled) setLoading(false);
+        });
+    }
+
+    load();
+    const unsubscribe = onProjectRefresh(load);
     return () => {
       cancelled = true;
+      unsubscribe();
     };
   }, []);
 
