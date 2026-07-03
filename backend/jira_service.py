@@ -53,11 +53,13 @@ STATUS_FROM_JIRA: list[tuple[re.Pattern[str], TicketStatus]] = [
     (re.compile(r"block|imped", re.I), TicketStatus.BLOCKED),
     (re.compile(r"review", re.I), TicketStatus.IN_REVIEW),
     (re.compile(r"progress|develop|active", re.I), TicketStatus.IN_PROGRESS),
-    (re.compile(r"backlog|todo|open|new|selected", re.I), TicketStatus.BACKLOG),
+    (re.compile(r"backlog", re.I), TicketStatus.BACKLOG),
+    (re.compile(r"to\s*do|todo|open|new|selected", re.I), TicketStatus.TODO),
 ]
 
 STATUS_TO_JIRA_HINTS: dict[TicketStatus, list[str]] = {
-    TicketStatus.BACKLOG: ["backlog", "to do", "todo", "open", "new"],
+    TicketStatus.BACKLOG: ["backlog"],
+    TicketStatus.TODO: ["to do", "todo", "open", "new", "selected"],
     TicketStatus.IN_PROGRESS: ["in progress", "progress", "develop", "active"],
     TicketStatus.IN_REVIEW: ["in review", "review", "code review"],
     TicketStatus.DONE: ["done", "closed", "resolved", "complete"],

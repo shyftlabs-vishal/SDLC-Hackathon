@@ -3,10 +3,12 @@ import type { TicketStatus } from "./types";
 
 export const TICKET_STATUSES: TicketStatus[] = [
   "backlog",
+  "todo",
   "in_progress",
   "in_review",
   "done",
   "blocked",
+  "archived",
 ];
 
 const STATUS_CONFIG: Record<TicketStatus, { label: string; pill: string; bar: string }> = {
@@ -14,6 +16,11 @@ const STATUS_CONFIG: Record<TicketStatus, { label: string; pill: string; bar: st
     label: "Backlog",
     pill: "bg-[#DFE1E6] text-[#42526E] border border-[#C1C7D0]",
     bar: "bg-[#42526E]",
+  },
+  todo: {
+    label: "To Do",
+    pill: "bg-[#EBECF0] text-[#172B4D] border border-[#C1C7D0]",
+    bar: "bg-[#5E6C84]",
   },
   in_progress: {
     label: "In Progress",
@@ -34,6 +41,11 @@ const STATUS_CONFIG: Record<TicketStatus, { label: string; pill: string; bar: st
     label: "Blocked",
     pill: "bg-[#FFEBE6] text-[#BF2600] border border-[#FFBDAD]",
     bar: "bg-[#DE350B]",
+  },
+  archived: {
+    label: "Archived",
+    pill: "bg-[#F4F5F7] text-[#6B778C] border border-[#DFE1E6]",
+    bar: "bg-[#97A0AF]",
   },
 };
 

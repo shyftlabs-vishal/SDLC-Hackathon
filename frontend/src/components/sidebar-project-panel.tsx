@@ -32,28 +32,26 @@ const STATUS_ORDER: TicketStatus[] = [
   "done",
   "in_progress",
   "in_review",
+  "todo",
   "backlog",
   "blocked",
+  "archived",
 ];
 
 function ticketBreakdown(tickets: ProjectDetail["tickets"]) {
   const counts: Record<TicketStatus, number> = {
     backlog: 0,
+    todo: 0,
     in_progress: 0,
     in_review: 0,
     done: 0,
     blocked: 0,
+    archived: 0,
   };
-  let points = 0;
-  let donePoints = 0;
   for (const t of tickets) {
     counts[t.status]++;
-    if (t.estimated_points) {
-      points += t.estimated_points;
-      if (t.status === "done") donePoints += t.estimated_points;
-    }
   }
-  return { counts, total: tickets.length, points, donePoints };
+  return { counts, total: tickets.length };
 }
 
 export function SidebarProjectPanel({
@@ -177,7 +175,6 @@ export function SidebarProjectPanel({
                 <span className="sidebar-label">Tickets</span>
                 <span className="text-xs text-[var(--sidebar-muted)]">
                   {breakdown.counts.done}/{breakdown.total} done
-                  {breakdown.points > 0 && ` · ${breakdown.donePoints}/${breakdown.points} pts`}
                 </span>
               </div>
               <div className="flex h-1.5 overflow-hidden rounded-full bg-white/10">

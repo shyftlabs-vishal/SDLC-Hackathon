@@ -127,7 +127,6 @@ from schemas import (
 from store import (
     create_project,
     delete_project,
-    delete_ticket,
     enrich_ticket_fields,
     find_ticket_by_title,
     get_command_center_insights,
@@ -647,20 +646,23 @@ async def jira_sync(project_id: str) -> JiraSyncResponse:
             )
             count += 1
 
-    deleted_count = 0
+    archived_count = 0
     for ticket_id in deleted_ids:
         try:
-            delete_ticket(ticket_id)
-            deleted_count += 1
+            ticket = get_ticket(ticket_id)
         except KeyError:
-            pass
+            continue
+        if ticket.status == TicketStatusEnum.ARCHIVED:
+            continue
+        update_ticket(ticket_id, status=TicketStatusEnum.ARCHIVED)
+        archived_count += 1
 
     refreshed = get_project_detail(project_id)
     parts = []
     if count:
         parts.append(f"synced {count}")
-    if deleted_count:
-        parts.append(f"removed {deleted_count} deleted from JIRA")
+    if archived_count:
+        parts.append(f"archived {archived_count} deleted from JIRA")
     _activity(
         project_id,
         "jira_sync",
@@ -668,7 +670,7 @@ async def jira_sync(project_id: str) -> JiraSyncResponse:
     )
     return JiraSyncResponse(
         updated=count,
-        deleted=deleted_count,
+        archived=archived_count,
         errors=errors,
         tickets=refreshed.tickets,
     )
@@ -783,7 +785,7 @@ async def apply_commit_links(
         if link.confidence < min_confidence:
             return None
         # AI matched tickets but omitted status (common when JSON fields are sparse).
-        if ticket.status == TicketStatusEnum.BACKLOG:
+        if ticket.status in (TicketStatusEnum.BACKLOG, TicketStatusEnum.TODO):
             return TicketStatusEnum.IN_PROGRESS
         return None
 

@@ -313,9 +313,6 @@ export function CommandCenter({
                 >
                   <div className="flex items-center justify-between">
                     <h3 className="font-semibold theme-heading">{s.name}</h3>
-                    <Badge className="bg-indigo-100 text-indigo-700 dark:bg-indigo-950/50 dark:text-indigo-300">
-                      {s.total_points} pts
-                    </Badge>
                   </div>
                   <p className="mt-1 text-sm text-[var(--muted)]">{s.goal}</p>
                   <ul className="mt-3 space-y-1">

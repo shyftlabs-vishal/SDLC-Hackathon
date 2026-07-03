@@ -92,7 +92,7 @@ def init_db() -> None:
                 description TEXT NOT NULL,
                 ticket_type TEXT NOT NULL,
                 priority TEXT NOT NULL,
-                status TEXT NOT NULL DEFAULT 'backlog',
+                status TEXT NOT NULL DEFAULT 'todo',
                 acceptance_criteria_json TEXT NOT NULL DEFAULT '[]',
                 estimated_points INTEGER,
                 dependencies_json TEXT NOT NULL DEFAULT '[]',
@@ -446,7 +446,7 @@ def save_analysis(
                 INSERT INTO tickets
                 (id, project_id, title, description, ticket_type, priority, status,
                  acceptance_criteria_json, estimated_points, dependencies_json, created_at, updated_at)
-                VALUES (?, ?, ?, ?, ?, ?, 'backlog', ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, 'todo', ?, ?, ?, ?, ?)
                 """,
                 (
                     ticket_id,

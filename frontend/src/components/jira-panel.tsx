@@ -97,7 +97,7 @@ export function JiraPanel({
       }
       const parts: string[] = [];
       if (result.updated > 0) parts.push(`${result.updated} updated`);
-      if (result.deleted > 0) parts.push(`${result.deleted} removed (deleted in JIRA)`);
+      if (result.archived > 0) parts.push(`${result.archived} archived (deleted in JIRA)`);
       if (parts.length) setSyncMessage(`Sync complete: ${parts.join(", ")}.`);
       await loadStatus();
       onUpdated();
@@ -236,7 +236,7 @@ export function JiraPanel({
             onChange={(e) => setEnrichOnImport(e.target.checked)}
             className="rounded border-[var(--border)]"
           />
-          Enrich imported tickets with AI (acceptance criteria &amp; story points)
+          Enrich imported tickets with AI (acceptance criteria)
         </label>
 
         {status?.site_url && (

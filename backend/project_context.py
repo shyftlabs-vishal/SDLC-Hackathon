@@ -63,7 +63,7 @@ def build_standup_context(project) -> str:
     blocked = [t for t in project.tickets if t.status.value == "blocked"]
     in_prog = [t for t in project.tickets if t.status.value == "in_progress"]
     done = [t for t in project.tickets if t.status.value == "done"]
-    backlog = [t for t in project.tickets if t.status.value == "backlog"]
+    backlog = [t for t in project.tickets if t.status.value in ("backlog", "todo")]
 
     spec_title = project.spec.title if project.spec else project.name
     overview = project.spec.overview if project.spec else ""

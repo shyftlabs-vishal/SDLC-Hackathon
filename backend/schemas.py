@@ -26,10 +26,12 @@ class TicketPriority(str, Enum):
 
 class TicketStatus(str, Enum):
     BACKLOG = "backlog"
+    TODO = "todo"
     IN_PROGRESS = "in_progress"
     IN_REVIEW = "in_review"
     DONE = "done"
     BLOCKED = "blocked"
+    ARCHIVED = "archived"
 
 
 class DriftSeverity(str, Enum):
@@ -491,7 +493,7 @@ class JiraPushResponse(BaseModel):
 
 class JiraSyncResponse(BaseModel):
     updated: int
-    deleted: int = 0
+    archived: int = 0
     errors: list[str]
     tickets: list[TicketResponse]
 

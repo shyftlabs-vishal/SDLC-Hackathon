@@ -7,7 +7,7 @@ import type { Ticket } from "@/lib/types";
 
 type EditableFields = Pick<
   Ticket,
-  "title" | "description" | "acceptance_criteria" | "estimated_points"
+  "title" | "description" | "acceptance_criteria"
 >;
 
 type Props = {
@@ -21,7 +21,6 @@ type Props = {
 type Draft = {
   title: string;
   description: string;
-  points: string;
   criteria: string[];
 };
 
@@ -29,7 +28,6 @@ function toDraft(ticket: Ticket): Draft {
   return {
     title: ticket.title,
     description: ticket.description,
-    points: ticket.estimated_points != null ? String(ticket.estimated_points) : "",
     criteria:
       ticket.acceptance_criteria.length > 0 ? [...ticket.acceptance_criteria] : [""],
   };
@@ -44,16 +42,6 @@ function criteriaEqual(a: string[], b: string[]): boolean {
   const right = normalizeCriteria(b);
   if (left.length !== right.length) return false;
   return left.every((item, index) => item === right[index]);
-}
-
-function parsePoints(raw: string): number | null {
-  const trimmed = raw.trim();
-  if (!trimmed) return null;
-  const value = Number(trimmed);
-  if (!Number.isInteger(value) || value < 0) {
-    throw new Error("Story points must be a whole number of 0 or more");
-  }
-  return value;
 }
 
 export function TicketEditor({ ticket, disabled, meta, onSaved, onError }: Props) {
@@ -111,18 +99,9 @@ export function TicketEditor({ ticket, disabled, meta, onSaved, onError }: Props
       return;
     }
 
-    let estimatedPoints: number | null;
-    try {
-      estimatedPoints = parsePoints(draft.points);
-    } catch (e) {
-      onError(e instanceof Error ? e.message : "Invalid story points");
-      return;
-    }
-
     const unchanged =
       trimmedTitle === ticket.title &&
       trimmedDescription === ticket.description &&
-      estimatedPoints === ticket.estimated_points &&
       criteriaEqual(acceptanceCriteria, ticket.acceptance_criteria);
 
     if (unchanged) {
@@ -134,16 +113,12 @@ export function TicketEditor({ ticket, disabled, meta, onSaved, onError }: Props
       title?: string;
       description?: string;
       acceptance_criteria?: string[];
-      estimated_points?: number | null;
     } = {};
 
     if (trimmedTitle !== ticket.title) payload.title = trimmedTitle;
     if (trimmedDescription !== ticket.description) payload.description = trimmedDescription;
     if (!criteriaEqual(acceptanceCriteria, ticket.acceptance_criteria)) {
       payload.acceptance_criteria = acceptanceCriteria;
-    }
-    if (estimatedPoints !== ticket.estimated_points) {
-      payload.estimated_points = estimatedPoints;
     }
 
     if (Object.keys(payload).length === 0) {
@@ -159,7 +134,6 @@ export function TicketEditor({ ticket, disabled, meta, onSaved, onError }: Props
         title: updated.title,
         description: updated.description,
         acceptance_criteria: updated.acceptance_criteria,
-        estimated_points: updated.estimated_points,
       };
 
       setEditing(false);
@@ -246,22 +220,6 @@ export function TicketEditor({ ticket, disabled, meta, onSaved, onError }: Props
           </div>
         </div>
 
-        <div className="max-w-[8rem]">
-          <label className="mb-1 block text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-            Story points
-          </label>
-          <input
-            type="number"
-            min={0}
-            max={100}
-            value={draft.points}
-            onChange={(e) => setDraft((current) => ({ ...current, points: e.target.value }))}
-            disabled={saving}
-            placeholder="Optional"
-            className="w-full rounded-lg border border-[var(--border-strong)] bg-[var(--input-bg)] px-3 py-2 text-sm theme-body outline-none focus:ring-2 focus:ring-[var(--ring)]"
-          />
-        </div>
-
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
@@ -319,9 +277,4 @@ export function TicketEditor({ ticket, disabled, meta, onSaved, onError }: Props
       )}
     </div>
   );
-}
-
-export function TicketPointsBadge({ points }: { points: number | null }) {
-  if (points == null) return null;
-  return <span className="text-xs text-[var(--muted)]">{points} pts</span>;
 }

@@ -78,8 +78,8 @@ confidence: 0.0-1.0
 For EVERY link you output, you MUST set:
 - commit_shas: list of short SHAs copied exactly from the GIT COMMITS section (e.g. ["a1b2c3d"])
 - evidence: one sentence citing the commit message or files
-- suggested_status: backlog | in_progress | in_review | done (never null)
-- Commits show active work on a backlog ticket → in_progress
+- suggested_status: backlog | todo | in_progress | in_review | done (never null)
+- Commits show active work on a backlog or todo ticket → in_progress
 - Commits look complete/merged/fix shipped → in_review or done
 - Ticket already done and commits are follow-up → done
 - Never leave suggested_status null on a link

@@ -1,6 +1,13 @@
 export type TicketType = "feature" | "bug" | "task" | "spike" | "chore";
 export type TicketPriority = "critical" | "high" | "medium" | "low";
-export type TicketStatus = "backlog" | "in_progress" | "in_review" | "done" | "blocked";
+export type TicketStatus =
+  | "backlog"
+  | "todo"
+  | "in_progress"
+  | "in_review"
+  | "done"
+  | "blocked"
+  | "archived";
 export type DriftSeverity = "critical" | "high" | "medium" | "low" | "info";
 
 export interface Spec {
@@ -135,7 +142,7 @@ export interface JiraPushResponse {
 
 export interface JiraSyncResponse {
   updated: number;
-  deleted: number;
+  archived: number;
   errors: string[];
   tickets: Ticket[];
 }

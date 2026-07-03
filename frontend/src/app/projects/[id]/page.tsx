@@ -34,7 +34,7 @@ import { GitBranchPicker } from "@/components/git-branch-picker";
 import { JiraPanel } from "@/components/jira-panel";
 import { StatusSelect } from "@/components/status-select";
 import { TicketNudge } from "@/components/ticket-nudge";
-import { TicketEditor, TicketPointsBadge } from "@/components/ticket-editor";
+import { TicketEditor } from "@/components/ticket-editor";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardBody, CardHeader } from "@/components/ui/card";
@@ -220,10 +220,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
 
   function handleTicketSaved(
     ticketId: string,
-    updated: Pick<
-      Ticket,
-      "title" | "description" | "acceptance_criteria" | "estimated_points"
-    >,
+    updated: Pick<Ticket, "title" | "description" | "acceptance_criteria">,
   ) {
     setError(null);
     setProject((current) =>
@@ -516,7 +513,6 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
                               <User className="h-3 w-3" />
                               {ticket.assignee ?? "Unassigned"}
                             </span>
-                            <TicketPointsBadge points={ticket.estimated_points} />
                           </>
                         }
                       />
