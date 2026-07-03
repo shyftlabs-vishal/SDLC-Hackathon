@@ -21,6 +21,10 @@ export const metadata: Metadata = {
   title: "SDLC Conductor",
   description:
     "Turn requirements into specs and tickets, track git activity, and detect code drift.",
+  icons: {
+    icon: "/logo.svg",
+    apple: "/logo.svg",
+  },
 };
 
 export default function RootLayout({

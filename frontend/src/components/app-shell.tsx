@@ -9,10 +9,10 @@ import {
   PanelLeftClose,
   Plus,
   Search,
-  Workflow,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CommandPalette, useCommandPalette } from "@/components/command-palette";
+import { SdlcLogo } from "@/components/sdlc-logo";
 import { SidebarHealth } from "@/components/sidebar-health";
 import { SidebarProjectPanel } from "@/components/sidebar-project-panel";
 import { SidebarRecentProjects } from "@/components/sidebar-recent-projects";
@@ -92,9 +92,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         )}
       >
         <div className="flex h-[3.75rem] shrink-0 items-center gap-3 border-b border-[var(--sidebar-border)] px-5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 shadow-lg shadow-indigo-900/30">
-            <Workflow className="h-5 w-5 text-white" />
-          </div>
+          <SdlcLogo size={36} className="shadow-lg shadow-indigo-900/30" />
           <div className="min-w-0 flex-1">
             <p className="truncate text-[15px] font-semibold tracking-tight text-white">
               SDLC Conductor
