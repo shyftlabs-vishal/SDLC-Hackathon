@@ -292,7 +292,7 @@ class ProjectCreate(BaseModel):
 
 
 class ProjectUpdate(BaseModel):
-    name: str | None = None
+    name: str | None = Field(default=None, min_length=1, max_length=200)
     description: str | None = None
     repo_url: str | None = None
     repo_branch: str | None = None

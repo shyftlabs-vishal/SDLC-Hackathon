@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import { ArrowRight, FolderKanban, Loader2, Trash2 } from "lucide-react";
 import { api } from "@/lib/api";
 import type { ProjectSummary } from "@/lib/types";
+import { ProjectNameEditor } from "@/components/project-name-editor";
 import { dispatchProjectRefresh } from "@/lib/refresh-events";
 import { alignmentBg, formatRelative } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +18,10 @@ export function ProjectList({ projects: initialProjects }: { projects: ProjectSu
   const [pendingDelete, setPendingDelete] = useState<ProjectSummary | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setProjects(initialProjects);
+  }, [initialProjects]);
 
   useEffect(() => {
     if (!pendingDelete || deleting) return;
@@ -44,6 +49,15 @@ export function ProjectList({ projects: initialProjects }: { projects: ProjectSu
     }
   }
 
+  function handleNameSaved(projectId: string, newName: string) {
+    setError(null);
+    setProjects((prev) =>
+      prev.map((p) => (p.id === projectId ? { ...p, name: newName } : p)),
+    );
+    dispatchProjectRefresh();
+    router.refresh();
+  }
+
   return (
     <>
       <div className="grid gap-4 md:grid-cols-2">
@@ -54,32 +68,43 @@ export function ProjectList({ projects: initialProjects }: { projects: ProjectSu
           >
             <button
               type="button"
-              onClick={() => {
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
                 setError(null);
                 setPendingDelete(project);
               }}
-              className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-[var(--muted)] opacity-70 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 dark:hover:border-red-900/50 dark:hover:bg-red-950/40 dark:hover:text-red-400"
+              className="absolute right-3 top-3 z-10 flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-[var(--muted)] opacity-70 transition-all hover:border-red-200 hover:bg-red-50 hover:text-red-600 sm:opacity-0 sm:group-hover:opacity-100 dark:hover:border-red-900/50 dark:hover:bg-red-950/40 dark:hover:text-red-400"
               aria-label={`Delete ${project.name}`}
               title="Delete project"
             >
               <Trash2 className="h-4 w-4" />
             </button>
 
-            <Link href={`/projects/${project.id}`} className="block min-w-0 pr-8">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">
-                    <FolderKanban className="h-5 w-5" />
-                  </div>
-                  <h3 className="break-words text-[15px] font-semibold theme-heading">
-                    {project.name}
-                  </h3>
+            <div className="flex items-start justify-between gap-3 pr-8">
+              <div className="flex min-w-0 flex-1 items-center gap-3">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-sm">
+                  <FolderKanban className="h-5 w-5" />
                 </div>
-                <ArrowRight className="mt-0.5 h-5 w-5 shrink-0 text-[var(--muted)] transition-transform group-hover:translate-x-1 group-hover:text-[var(--accent)]" />
+                <ProjectNameEditor
+                  projectId={project.id}
+                  name={project.name}
+                  onSaved={(newName) => handleNameSaved(project.id, newName)}
+                  onError={setError}
+                />
               </div>
+              <Link
+                href={`/projects/${project.id}`}
+                className="mt-0.5 shrink-0 text-[var(--muted)] transition-transform group-hover:translate-x-1 group-hover:text-[var(--accent)]"
+                aria-label={`Open ${project.name}`}
+              >
+                <ArrowRight className="h-5 w-5" />
+              </Link>
+            </div>
 
+            <Link href={`/projects/${project.id}`} className="mt-3 block min-w-0">
               {project.description && (
-                <p className="mt-3 line-clamp-2 break-words text-sm leading-relaxed text-[var(--muted)]">
+                <p className="line-clamp-2 break-words text-sm leading-relaxed text-[var(--muted)]">
                   {project.description}
                 </p>
               )}
@@ -112,6 +137,10 @@ export function ProjectList({ projects: initialProjects }: { projects: ProjectSu
           </div>
         ))}
       </div>
+
+      {error && !pendingDelete && (
+        <p className="mt-3 text-sm text-red-600 dark:text-red-400">{error}</p>
+      )}
 
       {pendingDelete && (
         <div
