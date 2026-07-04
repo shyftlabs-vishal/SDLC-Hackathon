@@ -253,6 +253,54 @@ class CommitLinkResponse(BaseModel):
     summary: str
 
 
+class PRReviewFinding(BaseModel):
+    severity: DriftSeverity
+    category: Literal[
+        "spec_alignment",
+        "ticket_coverage",
+        "scope_creep",
+        "quality",
+        "testing",
+        "other",
+    ]
+    title: str
+    description: str
+    file: str | None = None
+    recommendation: str
+
+
+class PRReviewResult(BaseModel):
+    verdict: Literal["approve", "request_changes", "needs_discussion"]
+    alignment_score: int = Field(ge=0, le=100)
+    summary: str
+    linked_tickets: list[str] = Field(default_factory=list)
+    findings: list[PRReviewFinding] = Field(default_factory=list)
+    acceptance_criteria_gaps: list[str] = Field(default_factory=list)
+    strengths: list[str] = Field(default_factory=list)
+
+
+class PullRequestSummary(BaseModel):
+    number: int
+    title: str
+    state: str
+    author: str
+    head_branch: str
+    base_branch: str
+    url: str
+    created_at: str
+    additions: int = 0
+    deletions: int = 0
+    changed_files: int = 0
+
+
+class PullRequestListResponse(BaseModel):
+    pull_requests: list[PullRequestSummary]
+
+
+class PRReviewRequest(BaseModel):
+    pr_number: int = Field(ge=1)
+
+
 class AIInsightResponse(BaseModel):
     insight_type: str
     payload: dict
@@ -427,6 +475,62 @@ class DriftCheckResponse(BaseModel):
     findings: list[DriftAlertResponse]
     covered_requirements: list[str]
     missing_requirements: list[str]
+
+
+class PerformanceDeliveryMetrics(BaseModel):
+    total_tickets: int
+    done: int
+    in_progress: int
+    in_review: int
+    backlog: int
+    blocked: int
+    completion_rate: int = Field(ge=0, le=100)
+    points_total: int
+    points_done: int
+    points_completion_rate: int = Field(ge=0, le=100)
+
+
+class PerformanceDriftMetrics(BaseModel):
+    alignment_score: int | None
+    open_alerts: int
+    resolved_alerts: int
+    critical_open: int
+    high_open: int
+    drift_penalty: int = Field(ge=0, le=100)
+    health_score: int = Field(ge=0, le=100)
+
+
+class PerformanceVelocityMetrics(BaseModel):
+    commits_last_7d: int
+    commits_last_14d: int
+    commits_tracked: int
+    activity_score: int = Field(ge=0, le=100)
+    has_repo: bool
+
+
+class PerformanceBreakdownItem(BaseModel):
+    name: str
+    score: int = Field(ge=0, le=100)
+    weight_percent: int = Field(ge=0, le=100)
+    status: Literal["strong", "moderate", "weak"]
+    detail: str
+
+
+class PerformanceRecommendation(BaseModel):
+    priority: Literal["high", "medium", "low"]
+    title: str
+    detail: str
+
+
+class PerformanceAnalyticsResponse(BaseModel):
+    overall_score: int = Field(ge=0, le=100)
+    grade: Literal["excellent", "good", "fair", "at_risk", "critical"]
+    summary: str
+    delivery: PerformanceDeliveryMetrics
+    drift: PerformanceDriftMetrics
+    velocity: PerformanceVelocityMetrics
+    breakdown: list[PerformanceBreakdownItem]
+    recommendations: list[PerformanceRecommendation] = Field(default_factory=list)
 
 
 class GitSyncRequest(BaseModel):

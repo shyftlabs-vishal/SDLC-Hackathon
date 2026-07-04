@@ -56,6 +56,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from git_service import (
     build_activity_summary,
+    fetch_github_pull_requests,
+    fetch_pull_request_for_review,
     list_project_branches,
     normalize_commit_timestamps,
     sync_project_commits,
@@ -83,9 +85,11 @@ from ai_agents import (
     generate_sprint_plan,
     generate_standup_for_project,
     link_commits_to_tickets,
+    review_pull_request,
     run_magic_suite,
 )
 from llm_config import api_key_env_name, is_api_key_configured, llm_status
+from performance_analytics import calculate_performance_analytics
 from project_context import build_project_context
 from schemas import (
     AnalyzeResponse,
@@ -108,6 +112,7 @@ from schemas import (
     JiraStatusResponse,
     JiraSyncResponse,
     MagicRunResponse,
+    PerformanceAnalyticsResponse,
     ProjectActivityResponse,
     ProjectChatRequest,
     ProjectChatResult,
@@ -115,6 +120,10 @@ from schemas import (
     ProjectDetail,
     ProjectSummary,
     ProjectUpdate,
+    PRReviewRequest,
+    PRReviewResult,
+    PullRequestListResponse,
+    PullRequestSummary,
     ReleaseReadinessResult,
     RequirementInput,
     ScopeCreepResult,
@@ -915,6 +924,60 @@ async def sync_git(project_id: str, body: GitSyncRequest | None = None) -> GitSy
         raise HTTPException(status_code=502, detail=str(exc)) from exc
 
 
+@app.get("/api/projects/{project_id}/git/pull-requests", response_model=PullRequestListResponse)
+async def list_pull_requests(project_id: str) -> PullRequestListResponse:
+    project = _get_project_or_404(project_id)
+    if not project.repo_url:
+        raise HTTPException(
+            status_code=400,
+            detail="Pull request review requires a GitHub repository URL.",
+        )
+    try:
+        token = os.getenv("GITHUB_TOKEN")
+        raw = await fetch_github_pull_requests(project.repo_url, token=token)
+        return PullRequestListResponse(
+            pull_requests=[PullRequestSummary(**item) for item in raw],
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+
+@app.post("/api/projects/{project_id}/ai/review-pr", response_model=PRReviewResult)
+async def ai_review_pull_request(
+    project_id: str,
+    body: PRReviewRequest,
+) -> PRReviewResult:
+    _require_llm()
+    project = _get_project_or_404(project_id)
+    if not project.repo_url:
+        raise HTTPException(
+            status_code=400,
+            detail="Pull request review requires a GitHub repository URL.",
+        )
+    if not project.spec and not project.tickets:
+        raise HTTPException(
+            status_code=400,
+            detail="Generate a spec and tickets first so the reviewer has context.",
+        )
+    try:
+        pr = await fetch_pull_request_for_review(project.repo_url, body.pr_number)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc)) from exc
+    except RuntimeError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
+
+    result = await _run_ai(review_pull_request(project, pr))
+    save_ai_insight(project_id, "pr_review", {**result.model_dump(), "pr_number": body.pr_number})
+    _activity(
+        project_id,
+        "pr_review",
+        f"Reviewed PR #{body.pr_number}: {result.verdict.replace('_', ' ')} ({result.alignment_score}% aligned)",
+    )
+    return result
+
+
 @app.post("/api/projects/{project_id}/drift/check", response_model=DriftCheckResponse)
 async def check_drift(project_id: str) -> DriftCheckResponse:
     if not is_api_key_configured():
@@ -979,6 +1042,12 @@ async def resolve_alert(alert_id: str):
         return resolve_drift_alert(alert_id)
     except KeyError as exc:
         raise HTTPException(status_code=404, detail=str(exc)) from exc
+
+
+@app.get("/api/projects/{project_id}/performance", response_model=PerformanceAnalyticsResponse)
+async def get_project_performance(project_id: str) -> PerformanceAnalyticsResponse:
+    project = _get_project_or_404(project_id)
+    return calculate_performance_analytics(project)
 
 
 @app.get("/api/projects/{project_id}/command-center", response_model=CommandCenterResponse)

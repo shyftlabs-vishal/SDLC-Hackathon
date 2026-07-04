@@ -19,6 +19,9 @@ import type {
   ProjectChatResult,
   ProjectDetail,
   ProjectSummary,
+  PRReviewResult,
+  PullRequestListResponse,
+  PerformanceAnalyticsResponse,
   ReleaseReadinessResult,
   ScopeCreepResult,
   SprintPlanResult,
@@ -59,6 +62,9 @@ export const api = {
   listProjects: () => request<ProjectSummary[]>("/api/projects"),
 
   getProject: (id: string) => request<ProjectDetail>(`/api/projects/${id}`),
+
+  getProjectPerformance: (projectId: string) =>
+    request<PerformanceAnalyticsResponse>(`/api/projects/${projectId}/performance`),
 
   getProjectActivity: (projectId: string, limit = 15) =>
     request<ProjectActivityResponse>(
@@ -235,4 +241,13 @@ export const api = {
       `/api/projects/${projectId}/ai/apply-commit-links`,
       { method: "POST" },
     ),
+
+  listPullRequests: (projectId: string) =>
+    request<PullRequestListResponse>(`/api/projects/${projectId}/git/pull-requests`),
+
+  reviewPullRequest: (projectId: string, prNumber: number) =>
+    request<PRReviewResult>(`/api/projects/${projectId}/ai/review-pr`, {
+      method: "POST",
+      body: JSON.stringify({ pr_number: prNumber }),
+    }),
 };

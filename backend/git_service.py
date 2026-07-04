@@ -308,3 +308,140 @@ def normalize_commit_timestamps(commits: list[dict[str, Any]]) -> list[dict[str,
             dt = dt.replace(tzinfo=UTC)
         normalized.append({**commit, "committed_at": dt.isoformat()})
     return normalized
+
+
+def _github_headers(token: str | None) -> dict[str, str]:
+    headers: dict[str, str] = {"Accept": "application/vnd.github+json"}
+    if token:
+        headers["Authorization"] = f"Bearer {token}"
+    return headers
+
+
+async def fetch_github_pull_requests(
+    repo_url: str,
+    state: str = "open",
+    limit: int = 20,
+    token: str | None = None,
+) -> list[dict[str, Any]]:
+    parsed = _parse_github_repo(repo_url)
+    if not parsed:
+        raise ValueError(f"Could not parse GitHub repository from: {repo_url}")
+
+    owner, repo = parsed
+    headers = _github_headers(token)
+
+    async with httpx.AsyncClient(timeout=30.0) as client:
+        response = await client.get(
+            f"{GITHUB_API}/repos/{owner}/{repo}/pulls",
+            params={"state": state, "per_page": min(limit, 100), "sort": "updated", "direction": "desc"},
+            headers=headers,
+        )
+        if response.status_code == 401:
+            raise RuntimeError("GitHub authentication failed. Check GITHUB_TOKEN.")
+        if response.status_code == 404:
+            raise RuntimeError(f"GitHub repository not found: {owner}/{repo}")
+        response.raise_for_status()
+
+        pulls: list[dict[str, Any]] = []
+        for item in response.json():
+            pulls.append(
+                {
+                    "number": item["number"],
+                    "title": item.get("title") or f"PR #{item['number']}",
+                    "state": item.get("state") or "open",
+                    "author": (item.get("user") or {}).get("login") or "unknown",
+                    "head_branch": (item.get("head") or {}).get("ref") or "",
+                    "base_branch": (item.get("base") or {}).get("ref") or "",
+                    "url": item.get("html_url") or "",
+                    "created_at": item.get("created_at") or "",
+                    "body": item.get("body") or "",
+                    "additions": 0,
+                    "deletions": 0,
+                    "changed_files": 0,
+                }
+            )
+        return pulls
+
+
+async def fetch_github_pull_request_detail(
+    repo_url: str,
+    pr_number: int,
+    token: str | None = None,
+    *,
+    max_files: int = 30,
+    max_patch_chars: int = 2500,
+) -> dict[str, Any]:
+    parsed = _parse_github_repo(repo_url)
+    if not parsed:
+        raise ValueError(f"Could not parse GitHub repository from: {repo_url}")
+
+    owner, repo = parsed
+    headers = _github_headers(token)
+
+    async with httpx.AsyncClient(timeout=45.0) as client:
+        pr_resp = await client.get(
+            f"{GITHUB_API}/repos/{owner}/{repo}/pulls/{pr_number}",
+            headers=headers,
+        )
+        if pr_resp.status_code == 401:
+            raise RuntimeError("GitHub authentication failed. Check GITHUB_TOKEN.")
+        if pr_resp.status_code == 404:
+            raise RuntimeError(f"Pull request #{pr_number} not found.")
+        pr_resp.raise_for_status()
+        item = pr_resp.json()
+
+        files_resp = await client.get(
+            f"{GITHUB_API}/repos/{owner}/{repo}/pulls/{pr_number}/files",
+            params={"per_page": 100},
+            headers=headers,
+        )
+        files_resp.raise_for_status()
+        raw_files = files_resp.json()
+
+        files: list[dict[str, Any]] = []
+        total_additions = 0
+        total_deletions = 0
+        for f in raw_files[:max_files]:
+            patch = f.get("patch") or ""
+            if len(patch) > max_patch_chars:
+                patch = patch[:max_patch_chars] + "\n... [patch truncated]"
+            additions = f.get("additions", 0)
+            deletions = f.get("deletions", 0)
+            total_additions += additions
+            total_deletions += deletions
+            files.append(
+                {
+                    "filename": f.get("filename") or "",
+                    "status": f.get("status") or "modified",
+                    "additions": additions,
+                    "deletions": deletions,
+                    "patch": patch,
+                }
+            )
+
+        return {
+            "number": item["number"],
+            "title": item.get("title") or f"PR #{pr_number}",
+            "state": item.get("state") or "open",
+            "author": (item.get("user") or {}).get("login") or "unknown",
+            "head_branch": (item.get("head") or {}).get("ref") or "",
+            "base_branch": (item.get("base") or {}).get("ref") or "",
+            "url": item.get("html_url") or "",
+            "created_at": item.get("created_at") or "",
+            "body": item.get("body") or "",
+            "additions": total_additions,
+            "deletions": total_deletions,
+            "changed_files": len(raw_files),
+            "files": files,
+            "files_truncated": len(raw_files) > max_files,
+        }
+
+
+async def fetch_pull_request_for_review(
+    repo_url: str | None,
+    pr_number: int,
+) -> dict[str, Any]:
+    if not repo_url:
+        raise ValueError("Pull request review requires a GitHub repository URL.")
+    token = os.getenv("GITHUB_TOKEN")
+    return await fetch_github_pull_request_detail(repo_url, pr_number, token=token)

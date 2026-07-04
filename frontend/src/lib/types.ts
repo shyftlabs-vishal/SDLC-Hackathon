@@ -298,6 +298,105 @@ export interface GitBranchesResponse {
   default_branch: string | null;
 }
 
+export interface PullRequestSummary {
+  number: number;
+  title: string;
+  state: string;
+  author: string;
+  head_branch: string;
+  base_branch: string;
+  url: string;
+  created_at: string;
+  additions: number;
+  deletions: number;
+  changed_files: number;
+}
+
+export interface PullRequestListResponse {
+  pull_requests: PullRequestSummary[];
+}
+
+export interface PRReviewFinding {
+  severity: DriftSeverity;
+  category:
+    | "spec_alignment"
+    | "ticket_coverage"
+    | "scope_creep"
+    | "quality"
+    | "testing"
+    | "other";
+  title: string;
+  description: string;
+  file: string | null;
+  recommendation: string;
+}
+
+export interface PRReviewResult {
+  verdict: "approve" | "request_changes" | "needs_discussion";
+  alignment_score: number;
+  summary: string;
+  linked_tickets: string[];
+  findings: PRReviewFinding[];
+  acceptance_criteria_gaps: string[];
+  strengths: string[];
+}
+
+export interface PerformanceDeliveryMetrics {
+  total_tickets: number;
+  done: number;
+  in_progress: number;
+  in_review: number;
+  backlog: number;
+  blocked: number;
+  completion_rate: number;
+  points_total: number;
+  points_done: number;
+  points_completion_rate: number;
+}
+
+export interface PerformanceDriftMetrics {
+  alignment_score: number | null;
+  open_alerts: number;
+  resolved_alerts: number;
+  critical_open: number;
+  high_open: number;
+  drift_penalty: number;
+  health_score: number;
+}
+
+export interface PerformanceVelocityMetrics {
+  commits_last_7d: number;
+  commits_last_14d: number;
+  commits_tracked: number;
+  activity_score: number;
+  has_repo: boolean;
+}
+
+export interface PerformanceBreakdownItem {
+  name: string;
+  score: number;
+  weight_percent: number;
+  status: "strong" | "moderate" | "weak";
+  detail: string;
+}
+
+export interface PerformanceRecommendation {
+  priority: "high" | "medium" | "low";
+  title: string;
+  detail: string;
+}
+
+export interface PerformanceAnalyticsResponse {
+  overall_score: number;
+  grade: "excellent" | "good" | "fair" | "at_risk" | "critical";
+  summary: string;
+  delivery: PerformanceDeliveryMetrics;
+  drift: PerformanceDriftMetrics;
+  velocity: PerformanceVelocityMetrics;
+  breakdown: PerformanceBreakdownItem[];
+  recommendations: PerformanceRecommendation[];
+}
+
 export interface DocumentExtractResponse {
   text: string;
   filename: string;

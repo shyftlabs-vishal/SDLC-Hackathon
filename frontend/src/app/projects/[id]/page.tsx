@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { CommandCenter } from "@/components/command-center";
 import { OverviewAIBrief } from "@/components/overview-ai-brief";
+import { PerformanceAnalytics } from "@/components/performance-analytics";
 import { ProjectChat } from "@/components/project-chat";
 import { RequirementEditor } from "@/components/requirement-editor";
 import { api } from "@/lib/api";
@@ -31,6 +32,7 @@ import {
   typeStyles,
 } from "@/lib/utils";
 import { GitBranchPicker } from "@/components/git-branch-picker";
+import { PRReviewPanel } from "@/components/pr-review-panel";
 import { JiraPanel } from "@/components/jira-panel";
 import { StatusSelect } from "@/components/status-select";
 import { TicketNudge } from "@/components/ticket-nudge";
@@ -68,6 +70,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const [selectedBranch, setSelectedBranch] = useState("main");
 
   const hasRepo = Boolean(project?.repo_url || project?.local_repo_path);
+  const hasGitHubRepo = Boolean(project?.repo_url);
 
   useEffect(() => {
     params.then((p) => setProjectId(p.id));
@@ -366,6 +369,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               onOpenCommandCenter={() => selectTab("command")}
             />
           )}
+          {projectId && <PerformanceAnalytics projectId={projectId} />}
           <div className="grid gap-6 lg:grid-cols-2">
             <Card>
               <CardHeader title="Requirement" />
@@ -539,7 +543,13 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
       )}
 
       {tab === "git" && (
-        <Card>
+        <div className="space-y-6">
+          <PRReviewPanel
+            projectId={projectId!}
+            hasGitHubRepo={hasGitHubRepo}
+            onError={setError}
+          />
+          <Card>
           <CardHeader
             title="Git activity"
             description={
@@ -619,6 +629,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
             )}
           </CardBody>
         </Card>
+        </div>
       )}
 
       {tab === "drift" && (

@@ -12,6 +12,8 @@ from text_sanitize import dedupe_clause, polish_standup
 from schemas import (
     CommitLinkResult,
     CommitTicketLink,
+    PRReviewFinding,
+    PRReviewResult,
     ProjectChatResult,
     ReadinessCheckItem,
     ReleaseReadinessResult,
@@ -188,6 +190,52 @@ def normalize_scope_creep(raw: str | dict[str, Any]) -> ScopeCreepResult:
     )
 
 
+def normalize_pr_review(raw: str | dict[str, Any]) -> PRReviewResult:
+    data = _extract_json(raw) if isinstance(raw, str) else raw
+    verdict_raw = str(data.get("verdict") or "needs_discussion").lower()
+    if verdict_raw not in ("approve", "request_changes", "needs_discussion"):
+        verdict_raw = "needs_discussion"
+
+    findings: list[PRReviewFinding] = []
+    for item in data.get("findings") or data.get("issues") or []:
+        if not isinstance(item, dict):
+            continue
+        category = str(item.get("category") or "other").lower()
+        if category not in (
+            "spec_alignment",
+            "ticket_coverage",
+            "scope_creep",
+            "quality",
+            "testing",
+            "other",
+        ):
+            category = "other"
+        findings.append(
+            PRReviewFinding(
+                severity=_normalize_severity(item.get("severity")),
+                category=category,
+                title=_as_text(item.get("title"), "Review finding"),
+                description=_as_text(item.get("description"), ""),
+                file=item.get("file") or item.get("filename") or None,
+                recommendation=_as_text(
+                    item.get("recommendation") or item.get("action"), "Review with team."
+                ),
+            )
+        )
+
+    return PRReviewResult(
+        verdict=verdict_raw,
+        alignment_score=_clamp_score(data.get("alignment_score") or data.get("score"), 50),
+        summary=_as_text(data.get("summary"), "Pull request review complete."),
+        linked_tickets=_as_list(data.get("linked_tickets") or data.get("tickets")),
+        findings=findings,
+        acceptance_criteria_gaps=_as_list(
+            data.get("acceptance_criteria_gaps") or data.get("gaps")
+        ),
+        strengths=_as_list(data.get("strengths") or data.get("positives")),
+    )
+
+
 def _normalize_status(raw: Any) -> TicketStatus | None:
     if not raw:
         return None
@@ -286,6 +334,7 @@ def try_normalize_ai_output(schema: type, content: str | None):
         CommitLinkResult: normalize_commit_links,
         ProjectChatResult: normalize_project_chat,
         TicketEnrichmentResult: normalize_ticket_enrichment,
+        PRReviewResult: normalize_pr_review,
     }
     fn = normalizers.get(schema)
     if fn is None:

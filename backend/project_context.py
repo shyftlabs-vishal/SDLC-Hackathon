@@ -112,3 +112,43 @@ RECENT COMMITS:
 OPEN DRIFT:
 {chr(10).join(drift_lines) or 'None'}
 """
+
+
+def format_pr_files(files: list[dict]) -> str:
+    if not files:
+        return "No file diffs available."
+    lines: list[str] = []
+    for f in files:
+        filename = f.get("filename") or "unknown"
+        status = f.get("status") or "modified"
+        lines.append(
+            f"File: {filename} ({status}, +{f.get('additions', 0)}/-{f.get('deletions', 0)})"
+        )
+        patch = (f.get("patch") or "").strip()
+        if patch:
+            lines.append(f"```diff\n{patch}\n```")
+    return "\n".join(lines)
+
+
+def build_pr_review_context(project, pr: dict) -> str:
+    base = build_project_context(project)
+    files = pr.get("files") or []
+    truncated_note = ""
+    if pr.get("files_truncated"):
+        truncated_note = f"\n(Showing first {len(files)} of {pr.get('changed_files', len(files))} changed files.)"
+
+    return f"""{base}
+
+=== PULL REQUEST #{pr.get('number')} ===
+Title: {pr.get('title')}
+Author: {pr.get('author')}
+Branch: {pr.get('head_branch')} → {pr.get('base_branch')}
+URL: {pr.get('url')}
+Stats: +{pr.get('additions', 0)}/-{pr.get('deletions', 0)} across {pr.get('changed_files', len(files))} files{truncated_note}
+
+PR Description:
+{pr.get('body') or '(no description)'}
+
+=== PR FILE CHANGES ===
+{format_pr_files(files)}
+"""

@@ -9,9 +9,10 @@ from continuum.agent.config import AgentConfig, AgentMemoryConfig
 
 from agents import MAGIC_AGENT_DELAY_SEC, MAX_OUTPUT_TOKENS, run_structured
 from llm_config import get_default_model
-from project_context import build_standup_context
+from project_context import build_pr_review_context, build_standup_context
 from schemas import (
     CommitLinkResult,
+    PRReviewResult,
     ProjectChatResult,
     ReleaseReadinessResult,
     ScopeCreepResult,
@@ -106,6 +107,24 @@ For each ticket in the input list, output:
 Use project spec context when available. Be practical, not verbose.
 """
 
+_PR_REVIEW = """You are SDLC Conductor's Pull Request Review Agent.
+
+Review the pull request against the project SPEC, TICKETS, acceptance criteria, and drift alerts.
+This is spec-driven development — focus on alignment with agreed work, not generic style nitpicks.
+
+Rules:
+- verdict: approve | request_changes | needs_discussion
+- alignment_score: 0-100 (how well the PR matches spec/tickets)
+- linked_tickets: exact ticket titles from TICKETS section that this PR addresses
+- findings: max 8 items with severity (critical|high|medium|low), category, title, description, optional file path, recommendation
+- categories: spec_alignment, ticket_coverage, scope_creep, quality, testing, other
+- acceptance_criteria_gaps: criteria from linked tickets NOT covered by the diff
+- strengths: max 4 positive observations grounded in the diff
+- summary: 2-4 sentence executive summary for the reviewer
+- Only cite file paths that appear in PR FILE CHANGES
+- Flag scope creep if changes violate spec non_goals or add unplanned features
+"""
+
 
 def _agent(name: str, instructions: str, schema: type, temperature: float = 0.3, max_tokens: int | None = None) -> BaseAgent:
     return BaseAgent(
@@ -192,6 +211,14 @@ PROJECT CONTEXT:
 
 TICKETS TO ENRICH:
 {ticket_block}""",
+    )
+
+
+async def review_pull_request(project, pr: dict) -> PRReviewResult:
+    context = build_pr_review_context(project, pr)
+    return await run_structured(
+        _agent("pr-reviewer", _PR_REVIEW, PRReviewResult, 0.25, max_tokens=MAX_OUTPUT_TOKENS),
+        f"Review this pull request for SDLC alignment.\n\n{context}",
     )
 
 
