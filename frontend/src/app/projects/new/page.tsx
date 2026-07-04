@@ -110,12 +110,12 @@ export default function NewProjectPage() {
             description="Optional — connect a repo to track commits and detect drift."
           />
           <CardBody className="space-y-4">
-            <Field label="GitHub URL">
+            <Field label="Repository URL (GitHub, GitLab, or Azure DevOps)">
               <input
                 className="input"
                 value={repoUrl}
                 onChange={(e) => setRepoUrl(e.target.value)}
-                placeholder="https://github.com/org/repo"
+                placeholder="https://github.com/org/repo or gitlab.com/group/project"
               />
             </Field>
             <div className="grid gap-4 sm:grid-cols-2">

@@ -15,6 +15,8 @@ import {
   User,
 } from "lucide-react";
 import { CommandCenter } from "@/components/command-center";
+import { ExportReportButton } from "@/components/export-report-button";
+import { ImpactAnalysisPanel } from "@/components/impact-analysis-panel";
 import { OverviewAIBrief } from "@/components/overview-ai-brief";
 import { PerformanceAnalytics } from "@/components/performance-analytics";
 import { ProjectChat } from "@/components/project-chat";
@@ -70,7 +72,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
   const [selectedBranch, setSelectedBranch] = useState("main");
 
   const hasRepo = Boolean(project?.repo_url || project?.local_repo_path);
-  const hasGitHubRepo = Boolean(project?.repo_url);
+  const hasRemoteRepo = Boolean(project?.repo_url);
 
   useEffect(() => {
     params.then((p) => setProjectId(p.id));
@@ -304,6 +306,9 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
         </div>
 
         <div className="flex flex-col items-end gap-2">
+          {projectId && (
+            <ExportReportButton projectId={projectId} onError={setError} />
+          )}
           {hasRepo && (
             <GitBranchPicker
               compact
@@ -416,6 +421,16 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               </CardBody>
             </Card>
           </div>
+          {projectId &&
+            project.spec &&
+            requirement.trim() !== project.requirement.trim() && (
+              <ImpactAnalysisPanel
+                projectId={projectId}
+                newRequirement={requirement}
+                hasSpec={Boolean(project.spec)}
+                onError={setError}
+              />
+            )}
           {projectId && (
             <ProjectChat projectId={projectId} onError={setError} />
           )}
@@ -546,7 +561,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
         <div className="space-y-6">
           <PRReviewPanel
             projectId={projectId!}
-            hasGitHubRepo={hasGitHubRepo}
+            hasRemoteRepo={hasRemoteRepo}
             onError={setError}
           />
           <Card>
@@ -573,7 +588,7 @@ export default function ProjectPage({ params }: { params: Promise<{ id: string }
               />
             ) : (
               <p className="py-2 text-sm text-[var(--muted)]">
-                Connect a GitHub URL or local repo path to track commits.
+                Connect a GitHub, GitLab, or Azure DevOps URL — or a local repo path — to track commits.
               </p>
             )}
 

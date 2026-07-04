@@ -160,6 +160,22 @@ def init_db() -> None:
 
             CREATE INDEX IF NOT EXISTS idx_activity_project_time
             ON activity_events(project_id, created_at DESC);
+
+            CREATE TABLE IF NOT EXISTS performance_history (
+                id TEXT PRIMARY KEY,
+                project_id TEXT NOT NULL,
+                overall_score INTEGER NOT NULL,
+                alignment_score INTEGER,
+                delivery_score INTEGER NOT NULL,
+                drift_health_score INTEGER NOT NULL,
+                activity_score INTEGER NOT NULL,
+                trigger TEXT NOT NULL DEFAULT 'manual',
+                created_at TEXT NOT NULL,
+                FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
+            );
+
+            CREATE INDEX IF NOT EXISTS idx_performance_history_project_time
+            ON performance_history(project_id, created_at DESC);
             """
         )
         _migrate_schema(db)
@@ -953,4 +969,74 @@ def list_project_activity(project_id: str, limit: int = 15) -> list[dict[str, An
 
     events.sort(key=lambda e: e["created_at"], reverse=True)
     return events[:limit]
+
+
+def save_performance_snapshot(
+    project_id: str,
+    *,
+    overall_score: int,
+    alignment_score: int | None,
+    delivery_score: int,
+    drift_health_score: int,
+    activity_score: int,
+    trigger: str = "manual",
+) -> dict[str, Any]:
+    snapshot_id = _new_id()
+    now = _now().isoformat()
+    with _conn() as db:
+        db.execute(
+            """
+            INSERT INTO performance_history
+            (id, project_id, overall_score, alignment_score, delivery_score,
+             drift_health_score, activity_score, trigger, created_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (
+                snapshot_id,
+                project_id,
+                overall_score,
+                alignment_score,
+                delivery_score,
+                drift_health_score,
+                activity_score,
+                trigger,
+                now,
+            ),
+        )
+    return {
+        "id": snapshot_id,
+        "overall_score": overall_score,
+        "alignment_score": alignment_score,
+        "delivery_score": delivery_score,
+        "drift_health_score": drift_health_score,
+        "activity_score": activity_score,
+        "trigger": trigger,
+        "created_at": now,
+    }
+
+
+def list_performance_history(project_id: str, limit: int = 30) -> list[dict[str, Any]]:
+    with _conn() as db:
+        rows = db.execute(
+            """
+            SELECT * FROM performance_history
+            WHERE project_id = ?
+            ORDER BY created_at DESC
+            LIMIT ?
+            """,
+            (project_id, limit),
+        ).fetchall()
+    return [
+        {
+            "id": row["id"],
+            "overall_score": row["overall_score"],
+            "alignment_score": row["alignment_score"],
+            "delivery_score": row["delivery_score"],
+            "drift_health_score": row["drift_health_score"],
+            "activity_score": row["activity_score"],
+            "trigger": row["trigger"],
+            "created_at": row["created_at"],
+        }
+        for row in rows
+    ]
 

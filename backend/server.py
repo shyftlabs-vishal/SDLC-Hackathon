@@ -14,6 +14,7 @@ Frontend: cd ../frontend && npm run dev
 from __future__ import annotations
 
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -56,8 +57,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from git_service import (
     build_activity_summary,
-    fetch_github_pull_requests,
     fetch_pull_request_for_review,
+    fetch_pull_requests,
     list_project_branches,
     normalize_commit_timestamps,
     sync_project_commits,
@@ -78,6 +79,7 @@ from jira_service import (
     verify_project as jira_verify_project,
 )
 from ai_agents import (
+    analyze_requirement_impact,
     ask_project,
     assess_release_readiness,
     detect_scope_creep,
@@ -91,6 +93,7 @@ from ai_agents import (
 from llm_config import api_key_env_name, is_api_key_configured, llm_status
 from performance_analytics import calculate_performance_analytics
 from project_context import build_project_context
+from report_service import generate_project_report
 from schemas import (
     AnalyzeResponse,
     ApplyCommitLinksResponse,
@@ -113,11 +116,14 @@ from schemas import (
     JiraSyncResponse,
     MagicRunResponse,
     PerformanceAnalyticsResponse,
+    PerformanceHistoryEntry,
+    PerformanceHistoryResponse,
     ProjectActivityResponse,
     ProjectChatRequest,
     ProjectChatResult,
     ProjectCreate,
     ProjectDetail,
+    ProjectReportResponse,
     ProjectSummary,
     ProjectUpdate,
     PRReviewRequest,
@@ -125,6 +131,8 @@ from schemas import (
     PullRequestListResponse,
     PullRequestSummary,
     ReleaseReadinessResult,
+    RequirementImpactRequest,
+    RequirementImpactResult,
     RequirementInput,
     ScopeCreepResult,
     SprintPlanRequest,
@@ -146,6 +154,7 @@ from store import (
     init_db,
     link_ticket_jira,
     list_jira_issue_keys,
+    list_performance_history,
     list_project_activity,
     list_projects,
     log_activity,
@@ -154,6 +163,7 @@ from store import (
     save_ai_insight,
     save_analysis,
     save_drift_analysis,
+    save_performance_snapshot,
     update_project,
     update_ticket,
 )
@@ -215,6 +225,44 @@ async def _run_ai(coro):
         raise HTTPException(status_code=500, detail=str(exc)) from exc
 
 
+def _record_performance_snapshot(project_id: str, project: ProjectDetail, trigger: str) -> None:
+    perf = calculate_performance_analytics(project)
+    by_name = {item.name: item.score for item in perf.breakdown}
+    save_performance_snapshot(
+        project_id,
+        overall_score=perf.overall_score,
+        alignment_score=project.alignment_score,
+        delivery_score=by_name.get("Delivery", 0),
+        drift_health_score=by_name.get("Drift health", 0),
+        activity_score=by_name.get("Git activity", 0),
+        trigger=trigger,
+    )
+
+
+def _build_trend_summary(entries: list[dict]) -> str | None:
+    if len(entries) < 2:
+        return None
+    latest = entries[0]
+    previous = entries[1]
+    parts: list[str] = []
+    overall_delta = latest["overall_score"] - previous["overall_score"]
+    if overall_delta != 0:
+        direction = "rose" if overall_delta > 0 else "dropped"
+        parts.append(
+            f"Overall score {direction} from {previous['overall_score']} → {latest['overall_score']}"
+        )
+    if latest.get("alignment_score") is not None and previous.get("alignment_score") is not None:
+        align_delta = latest["alignment_score"] - previous["alignment_score"]
+        if align_delta != 0:
+            direction = "rose" if align_delta > 0 else "dropped"
+            parts.append(
+                f"Alignment {direction} from {previous['alignment_score']}% → {latest['alignment_score']}%"
+            )
+    if not parts:
+        return "Scores are stable since the last snapshot."
+    return ". ".join(parts) + "."
+
+
 @app.get("/api/health", response_model=HealthResponse)
 async def health() -> HealthResponse:
     status = llm_status()
@@ -222,6 +270,8 @@ async def health() -> HealthResponse:
         status="ok",
         service="SDLC Conductor",
         github_configured=bool(os.getenv("GITHUB_TOKEN")),
+        gitlab_configured=bool(os.getenv("GITLAB_TOKEN")),
+        azure_devops_configured=bool(os.getenv("AZURE_DEVOPS_TOKEN")),
         jira_configured=jira_is_configured(),
         **status,
     )
@@ -907,6 +957,7 @@ async def sync_git(project_id: str, body: GitSyncRequest | None = None) -> GitSy
         inserted = replace_commits(project_id, commits)
         latest = commits[0]["sha"] if commits else None
         updated = get_project_detail(project_id)
+        _record_performance_snapshot(project_id, updated, "git_sync")
         _activity(
             project_id,
             "git_sync",
@@ -930,11 +981,10 @@ async def list_pull_requests(project_id: str) -> PullRequestListResponse:
     if not project.repo_url:
         raise HTTPException(
             status_code=400,
-            detail="Pull request review requires a GitHub repository URL.",
+            detail="Pull request review requires a GitHub, GitLab, or Azure DevOps repository URL.",
         )
     try:
-        token = os.getenv("GITHUB_TOKEN")
-        raw = await fetch_github_pull_requests(project.repo_url, token=token)
+        raw = await fetch_pull_requests(project.repo_url)
         return PullRequestListResponse(
             pull_requests=[PullRequestSummary(**item) for item in raw],
         )
@@ -954,7 +1004,7 @@ async def ai_review_pull_request(
     if not project.repo_url:
         raise HTTPException(
             status_code=400,
-            detail="Pull request review requires a GitHub repository URL.",
+            detail="Pull request review requires a GitHub, GitLab, or Azure DevOps repository URL.",
         )
     if not project.spec and not project.tickets:
         raise HTTPException(
@@ -1016,6 +1066,8 @@ async def check_drift(project_id: str) -> DriftCheckResponse:
             git_text,
         )
         alerts = save_drift_analysis(project_id, result.alignment_score, result.findings)
+        updated = get_project_detail(project_id)
+        _record_performance_snapshot(project_id, updated, "drift_check")
         _activity(
             project_id,
             "drift_check",
@@ -1047,7 +1099,56 @@ async def resolve_alert(alert_id: str):
 @app.get("/api/projects/{project_id}/performance", response_model=PerformanceAnalyticsResponse)
 async def get_project_performance(project_id: str) -> PerformanceAnalyticsResponse:
     project = _get_project_or_404(project_id)
-    return calculate_performance_analytics(project)
+    result = calculate_performance_analytics(project)
+    _record_performance_snapshot(project_id, project, "view")
+    return result
+
+
+@app.get("/api/projects/{project_id}/performance/history", response_model=PerformanceHistoryResponse)
+async def get_performance_history(project_id: str, limit: int = 30) -> PerformanceHistoryResponse:
+    _get_project_or_404(project_id)
+    raw = list_performance_history(project_id, limit=min(limit, 100))
+    entries = [PerformanceHistoryEntry(**row) for row in raw]
+    return PerformanceHistoryResponse(
+        entries=entries,
+        trend_summary=_build_trend_summary(raw),
+    )
+
+
+@app.get("/api/projects/{project_id}/report", response_model=ProjectReportResponse)
+async def get_project_report(project_id: str) -> ProjectReportResponse:
+    project = _get_project_or_404(project_id)
+    cached = get_latest_insight(project_id, "readiness")
+    readiness = None
+    if cached:
+        readiness = ReleaseReadinessResult.model_validate(cached["payload"])
+    markdown = generate_project_report(project, readiness=readiness)
+    safe_name = re.sub(r"[^\w\-]+", "-", project.name.strip().lower())[:40] or "project"
+    filename = f"sdlc-conductor-{safe_name}-report.md"
+    return ProjectReportResponse(markdown=markdown, filename=filename)
+
+
+@app.post("/api/projects/{project_id}/ai/impact-analysis", response_model=RequirementImpactResult)
+async def ai_requirement_impact(
+    project_id: str,
+    body: RequirementImpactRequest,
+) -> RequirementImpactResult:
+    _require_llm()
+    project = _get_project_or_404(project_id)
+    if not project.spec and not project.tickets:
+        raise HTTPException(
+            status_code=400,
+            detail="Generate a spec and tickets first to analyze impact of requirement changes.",
+        )
+    result = await _run_ai(analyze_requirement_impact(project, body.new_requirement))
+    save_ai_insight(project_id, "requirement_impact", result.model_dump())
+    _activity(
+        project_id,
+        "impact_analysis",
+        f"Requirement impact: {len(result.outdated_tickets)} outdated ticket(s), "
+        f"{len(result.stale_acceptance_criteria)} stale criteria",
+    )
+    return result
 
 
 @app.get("/api/projects/{project_id}/command-center", response_model=CommandCenterResponse)

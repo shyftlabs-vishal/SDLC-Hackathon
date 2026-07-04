@@ -18,7 +18,7 @@ import { Card, CardBody, CardHeader } from "@/components/ui/card";
 
 type Props = {
   projectId: string;
-  hasGitHubRepo: boolean;
+  hasRemoteRepo: boolean;
   onError: (msg: string) => void;
 };
 
@@ -46,7 +46,7 @@ const CATEGORY_LABEL: Record<PRReviewResult["findings"][0]["category"], string> 
   other: "Other",
 };
 
-export function PRReviewPanel({ projectId, hasGitHubRepo, onError }: Props) {
+export function PRReviewPanel({ projectId, hasRemoteRepo, onError }: Props) {
   const [pulls, setPulls] = useState<PullRequestSummary[]>([]);
   const [loadingList, setLoadingList] = useState(false);
   const [selectedPr, setSelectedPr] = useState<number | null>(null);
@@ -54,7 +54,7 @@ export function PRReviewPanel({ projectId, hasGitHubRepo, onError }: Props) {
   const [review, setReview] = useState<PRReviewResult | null>(null);
 
   const loadPulls = useCallback(async () => {
-    if (!hasGitHubRepo) return;
+    if (!hasRemoteRepo) return;
     setLoadingList(true);
     try {
       const data = await api.listPullRequests(projectId);
@@ -66,7 +66,7 @@ export function PRReviewPanel({ projectId, hasGitHubRepo, onError }: Props) {
     } finally {
       setLoadingList(false);
     }
-  }, [projectId, hasGitHubRepo, onError]);
+  }, [projectId, hasRemoteRepo, onError]);
 
   useEffect(() => {
     void loadPulls();
@@ -87,7 +87,7 @@ export function PRReviewPanel({ projectId, hasGitHubRepo, onError }: Props) {
     }
   }
 
-  if (!hasGitHubRepo) {
+  if (!hasRemoteRepo) {
     return (
       <Card>
         <CardHeader
@@ -96,8 +96,8 @@ export function PRReviewPanel({ projectId, hasGitHubRepo, onError }: Props) {
         />
         <CardBody>
           <p className="text-sm text-[var(--muted)]">
-            Connect a GitHub repository URL to review open pull requests against your
-            spec and tickets.
+            Connect a GitHub, GitLab, or Azure DevOps repository URL to review open
+            pull requests against your spec and tickets.
           </p>
         </CardBody>
       </Card>

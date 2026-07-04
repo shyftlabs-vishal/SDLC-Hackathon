@@ -15,6 +15,7 @@ from schemas import (
     PRReviewResult,
     ProjectChatResult,
     ReleaseReadinessResult,
+    RequirementImpactResult,
     ScopeCreepResult,
     SprintPlanResult,
     StandupDigestResult,
@@ -125,6 +126,22 @@ Rules:
 - Flag scope creep if changes violate spec non_goals or add unplanned features
 """
 
+_IMPACT = """You are SDLC Conductor's Requirement Impact Analyst.
+
+The user changed the product requirement. Compare the NEW requirement against the CURRENT spec, tickets, and acceptance criteria.
+Identify what existing work may be outdated or misaligned — do NOT regenerate the full spec.
+
+Rules:
+- outdated_tickets: tickets whose scope no longer matches the new requirement (use exact ticket titles from TICKETS)
+- stale_acceptance_criteria: specific AC strings that no longer apply (include ticket_title when tied to a ticket)
+- spec_sections_affected: short labels e.g. "Authentication goals", "API constraints"
+- recommended_actions: 3-6 concrete next steps (update ticket X, re-run drift, split ticket Y, etc.)
+- severity per outdated ticket: critical if blocks release, high/medium/low otherwise
+- summary: 2-4 sentences for a PM — e.g. "4 tickets may be outdated; 2 acceptance criteria no longer match."
+- If new requirement is a minor tweak, say so and list fewer items
+- Use ONLY ticket titles and criteria from the provided context
+"""
+
 
 def _agent(name: str, instructions: str, schema: type, temperature: float = 0.3, max_tokens: int | None = None) -> BaseAgent:
     return BaseAgent(
@@ -219,6 +236,33 @@ async def review_pull_request(project, pr: dict) -> PRReviewResult:
     return await run_structured(
         _agent("pr-reviewer", _PR_REVIEW, PRReviewResult, 0.25, max_tokens=MAX_OUTPUT_TOKENS),
         f"Review this pull request for SDLC alignment.\n\n{context}",
+    )
+
+
+async def analyze_requirement_impact(project, new_requirement: str) -> RequirementImpactResult:
+    from agents import format_spec_for_drift, format_tickets_for_drift
+
+    spec_text = format_spec_for_drift(project.spec) if project.spec else "No spec yet."
+    tickets_text = format_tickets_for_drift(project.tickets)
+    old_req = (project.requirement or "").strip()
+
+    context = f"""PROJECT: {project.name}
+
+=== CURRENT REQUIREMENT ===
+{old_req or '(empty)'}
+
+=== NEW REQUIREMENT ===
+{new_requirement.strip()}
+
+=== CURRENT SPEC ===
+{spec_text}
+
+=== CURRENT TICKETS ===
+{tickets_text}
+"""
+    return await run_structured(
+        _agent("requirement-impact", _IMPACT, RequirementImpactResult, 0.25),
+        f"Analyze impact of the requirement change.\n\n{context}",
     )
 
 

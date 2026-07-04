@@ -301,6 +301,52 @@ class PRReviewRequest(BaseModel):
     pr_number: int = Field(ge=1)
 
 
+class OutdatedTicketItem(BaseModel):
+    ticket_title: str
+    reason: str
+    severity: Literal["critical", "high", "medium", "low"]
+    suggested_action: str
+
+
+class StaleCriteriaItem(BaseModel):
+    ticket_title: str | None = None
+    criteria: str
+    reason: str
+
+
+class RequirementImpactResult(BaseModel):
+    summary: str
+    outdated_tickets: list[OutdatedTicketItem] = Field(default_factory=list)
+    stale_acceptance_criteria: list[StaleCriteriaItem] = Field(default_factory=list)
+    spec_sections_affected: list[str] = Field(default_factory=list)
+    recommended_actions: list[str] = Field(default_factory=list)
+
+
+class RequirementImpactRequest(BaseModel):
+    new_requirement: str = Field(min_length=10, max_length=50000)
+
+
+class PerformanceHistoryEntry(BaseModel):
+    id: str
+    overall_score: int = Field(ge=0, le=100)
+    alignment_score: int | None = None
+    delivery_score: int = Field(ge=0, le=100)
+    drift_health_score: int = Field(ge=0, le=100)
+    activity_score: int = Field(ge=0, le=100)
+    trigger: str
+    created_at: datetime
+
+
+class PerformanceHistoryResponse(BaseModel):
+    entries: list[PerformanceHistoryEntry] = Field(default_factory=list)
+    trend_summary: str | None = None
+
+
+class ProjectReportResponse(BaseModel):
+    markdown: str
+    filename: str
+
+
 class AIInsightResponse(BaseModel):
     insight_type: str
     payload: dict
@@ -560,6 +606,8 @@ class HealthResponse(BaseModel):
     gemini_configured: bool
     aura_configured: bool
     github_configured: bool
+    gitlab_configured: bool = False
+    azure_devops_configured: bool = False
     jira_configured: bool
 
 

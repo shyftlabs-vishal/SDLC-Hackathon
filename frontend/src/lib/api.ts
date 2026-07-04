@@ -22,7 +22,10 @@ import type {
   PRReviewResult,
   PullRequestListResponse,
   PerformanceAnalyticsResponse,
+  PerformanceHistoryResponse,
+  ProjectReportResponse,
   ReleaseReadinessResult,
+  RequirementImpactResult,
   ScopeCreepResult,
   SprintPlanResult,
   StandupDigestResult,
@@ -65,6 +68,20 @@ export const api = {
 
   getProjectPerformance: (projectId: string) =>
     request<PerformanceAnalyticsResponse>(`/api/projects/${projectId}/performance`),
+
+  getPerformanceHistory: (projectId: string, limit = 30) =>
+    request<PerformanceHistoryResponse>(
+      `/api/projects/${projectId}/performance/history?limit=${limit}`,
+    ),
+
+  getProjectReport: (projectId: string) =>
+    request<ProjectReportResponse>(`/api/projects/${projectId}/report`),
+
+  analyzeRequirementImpact: (projectId: string, newRequirement: string) =>
+    request<RequirementImpactResult>(`/api/projects/${projectId}/ai/impact-analysis`, {
+      method: "POST",
+      body: JSON.stringify({ new_requirement: newRequirement }),
+    }),
 
   getProjectActivity: (projectId: string, limit = 15) =>
     request<ProjectActivityResponse>(

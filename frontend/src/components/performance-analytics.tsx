@@ -12,7 +12,7 @@ import {
   TrendingUp,
 } from "lucide-react";
 import { api } from "@/lib/api";
-import type { PerformanceAnalyticsResponse } from "@/lib/types";
+import type { PerformanceAnalyticsResponse, PerformanceHistoryEntry } from "@/lib/types";
 import { onProjectRefresh } from "@/lib/refresh-events";
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -98,8 +98,88 @@ function ScoreRing({ score, grade }: { score: number; grade: PerformanceAnalytic
   );
 }
 
+function HistoryChart({ entries }: { entries: PerformanceHistoryEntry[] }) {
+  const chronological = [...entries].reverse();
+  if (chronological.length < 2) return null;
+
+  const width = 320;
+  const height = 80;
+  const pad = 8;
+  const scores = chronological.map((e) => e.overall_score);
+  const alignScores = chronological
+    .map((e) => e.alignment_score)
+    .filter((v): v is number => v !== null);
+
+  function toPoints(values: number[]): string {
+    if (values.length < 2) return "";
+    const min = Math.min(...values, 0);
+    const max = Math.max(...values, 100);
+    const range = max - min || 1;
+    return values
+      .map((v, i) => {
+        const x = pad + (i / (values.length - 1)) * (width - pad * 2);
+        const y = height - pad - ((v - min) / range) * (height - pad * 2);
+        return `${x},${y}`;
+      })
+      .join(" ");
+  }
+
+  return (
+    <div className="rounded-xl border border-[var(--border)] p-4">
+      <div className="mb-3 flex flex-wrap items-center gap-4 text-xs text-[var(--muted)]">
+        <span className="flex items-center gap-1.5">
+          <span className="inline-block h-0.5 w-4 rounded bg-indigo-500" />
+          Overall score
+        </span>
+        {alignScores.length >= 2 && (
+          <span className="flex items-center gap-1.5">
+            <span className="inline-block h-0.5 w-4 rounded bg-emerald-500" />
+            Alignment
+          </span>
+        )}
+      </div>
+      <svg viewBox={`0 0 ${width} ${height}`} className="h-20 w-full max-w-md">
+        <polyline
+          fill="none"
+          stroke="var(--border)"
+          strokeWidth="1"
+          points={`${pad},${height - pad} ${width - pad},${height - pad}`}
+        />
+        <polyline
+          fill="none"
+          stroke="#6366f1"
+          strokeWidth="2"
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          points={toPoints(scores)}
+        />
+        {alignScores.length >= 2 && (
+          <polyline
+            fill="none"
+            stroke="#10b981"
+            strokeWidth="2"
+            strokeLinejoin="round"
+            strokeLinecap="round"
+            points={toPoints(
+              chronological
+                .map((e) => e.alignment_score)
+                .map((v) => (v === null ? scores[0] : v)),
+            )}
+          />
+        )}
+      </svg>
+      <div className="mt-2 flex justify-between text-[10px] text-[var(--muted)]">
+        <span>{chronological[0].created_at.slice(0, 10)}</span>
+        <span>{chronological[chronological.length - 1].created_at.slice(0, 10)}</span>
+      </div>
+    </div>
+  );
+}
+
 export function PerformanceAnalytics({ projectId }: Props) {
   const [data, setData] = useState<PerformanceAnalyticsResponse | null>(null);
+  const [history, setHistory] = useState<PerformanceHistoryEntry[]>([]);
+  const [trendSummary, setTrendSummary] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -109,6 +189,14 @@ export function PerformanceAnalytics({ projectId }: Props) {
     try {
       const result = await api.getProjectPerformance(projectId);
       setData(result);
+      try {
+        const historyData = await api.getPerformanceHistory(projectId);
+        setHistory(historyData.entries);
+        setTrendSummary(historyData.trend_summary);
+      } catch {
+        setHistory([]);
+        setTrendSummary(null);
+      }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Failed to load performance analytics");
       setData(null);
@@ -159,8 +247,20 @@ export function PerformanceAnalytics({ projectId }: Props) {
           <div className="min-w-0 flex-1 text-center sm:text-left">
             <Badge className={GRADE_STYLE[data.grade]}>{GRADE_LABEL[data.grade]}</Badge>
             <p className="mt-3 text-sm leading-relaxed theme-body">{data.summary}</p>
+            {trendSummary && (
+              <p className="mt-2 text-sm text-indigo-700 dark:text-indigo-300">{trendSummary}</p>
+            )}
           </div>
         </div>
+
+        {history.length >= 2 && (
+          <div>
+            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-[var(--muted)]">
+              Performance & alignment history
+            </p>
+            <HistoryChart entries={history} />
+          </div>
+        )}
 
         <div className="grid gap-3 sm:grid-cols-3">
           <MetricTile

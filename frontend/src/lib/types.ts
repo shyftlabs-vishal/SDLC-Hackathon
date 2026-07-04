@@ -110,6 +110,8 @@ export interface HealthResponse {
   gemini_configured: boolean;
   aura_configured: boolean;
   github_configured: boolean;
+  gitlab_configured?: boolean;
+  azure_devops_configured?: boolean;
   jira_configured: boolean;
 }
 
@@ -402,4 +404,46 @@ export interface DocumentExtractResponse {
   filename: string;
   char_count: number;
   truncated: boolean;
+}
+
+export interface OutdatedTicketItem {
+  ticket_title: string;
+  reason: string;
+  severity: "critical" | "high" | "medium" | "low";
+  suggested_action: string;
+}
+
+export interface StaleCriteriaItem {
+  ticket_title: string | null;
+  criteria: string;
+  reason: string;
+}
+
+export interface RequirementImpactResult {
+  summary: string;
+  outdated_tickets: OutdatedTicketItem[];
+  stale_acceptance_criteria: StaleCriteriaItem[];
+  spec_sections_affected: string[];
+  recommended_actions: string[];
+}
+
+export interface PerformanceHistoryEntry {
+  id: string;
+  overall_score: number;
+  alignment_score: number | null;
+  delivery_score: number;
+  drift_health_score: number;
+  activity_score: number;
+  trigger: string;
+  created_at: string;
+}
+
+export interface PerformanceHistoryResponse {
+  entries: PerformanceHistoryEntry[];
+  trend_summary: string | null;
+}
+
+export interface ProjectReportResponse {
+  markdown: string;
+  filename: string;
 }
